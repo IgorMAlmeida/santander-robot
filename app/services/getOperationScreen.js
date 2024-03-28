@@ -36,7 +36,6 @@ export async function getOperationScreen(page, queue, codProposal) {
       }
     });
     
-    page.close();
     return (await getByQueue(targetPage, queue, codProposal));
   }catch (error) {
     console.log(error);

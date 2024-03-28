@@ -1,34 +1,58 @@
-import { clickElementByXpath } from "../../utils.js";
+import { clickElementByXpath, waitTimetout, getElementText, checkElement, getElementTextByXpath } from "../../utils.js";
 
 export async function scrappingProposalData(targetPage, data) {
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await waitTimetout(500);
     await clickElementByXpath(targetPage, `//*[@id="ctl00_cph_ucAprCns_j0_j1_grConsulta_ctl02_LkBSit"]`);
 
     data.situacao = await getElementText(targetPage, '#ctl00_cph_ucAprCns_j0_j1_grConsulta_ctl02_LkBSit');
     data.proximaAtividade = await getElementText(targetPage, '#ctl00_cph_ucAprCns_j0_j1_grConsulta_ctl02_LkBDesc');
     
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await waitTimetout(1500);
     const liquidValue = await getLiquidValue(targetPage);
-
     const pendencies = getPending(data.situacao);
-
     await targetPage.waitForSelector('::-p-xpath(//*[@id="ctl00_cph_j0_j1_UpdatePanel1"]/table/tbody/tr[1]/td[2]/table[1]/tbody/tr/td/table/tbody)');
 
     data.codProposta = await getElementText(targetPage, '#ctl00_cph_j0_j1_UcDadosCliente_lblNumeroDaProposta');
     data.cpf = await getElementText(targetPage, '#ctl00_cph_j0_j1_UcDadosCliente_lblCpf');
     data.nomeCliente = await getElementText(targetPage, '#ctl00_cph_j0_j1_UcDadosCliente_lblCliente');
     data.dataBase = await getElementText(targetPage, '#ctl00_cph_j0_j1_UcDadosCliente_lblDataBase');
+    data.dataAtivo = null;
+    data.horaAtivo = null;
     data.produto = await getElementText(targetPage, '#ctl00_cph_j0_j1_UcDadosCliente_lblProduto');
     data.status = `${data.situacao} - ${data.proximaAtividade}`;
-    data.valorLiquido = liquidValue;
+    data.liberacao1 = null;
+    data.liberacao2 = null;
+    data.convenio = null;
+    data.valorPrincipal = liquidValue;
     data.valorParcela = await getElementText(targetPage, '#ctl00_cph_j0_j1_UcDadosCliente_lblValorParcela');
+    data.promotora = null;
+    data.digitadora = null;
+    data.usuario = null;
+    data.loginDigitador = null;
     data.valorBruto = await getElementText(targetPage, '#ctl00_cph_j0_j1_UcDadosCliente_lblValorSolicitado');
-    data.propostaAverbada = await getElementText(targetPage, '#ctl00_cph_j0_j1_UcDadosCliente_lblValorSolicitado');
+    data.propostaAverbada = 'N';
+    const isElementPresent = await checkElement(targetPage, '//*[@id="ctl00_cph_j0_j1_UcDadosCliente_lbPercAverb"]');
+    if (isElementPresent) {    
+        data.propostaAverbada = await getElementTextByXpath(targetPage, '//*[@id="ctl00_cph_j0_j1_UcDadosCliente_lbPercAverb"]') === '100%' ? 'S' : data.propostaAverbada;
+    }
+    data.valorTroco = null;
     data.valorSeguro = await getElementText(targetPage, '#ctl00_cph_j0_j1_UcDadosCliente_lblSeguro');
+    data.simulacaoRefin  = null;
+    data.dataAverbacao   = null;
+    data.dataPagamento   = null;
     data.dataPrimeiroVencimento = await getElementText(targetPage, '#ctl00_cph_j0_j1_UcDadosCliente_lblVcto1Parcela');
+    data.dataUltimoVencimento = null;
+    data.pendenciado    = null;
+    data.statusId  = null;
+    data.temParadinha   = null;
+    data.dataSolicitacaoSaldo = null;
+    data.dataPrevistaSaldo  = null;
+    data.dataRetornoSaldo  = null;
+    data.saldoEnviado  = null;
+    data.saldoRetornado   = null;
     data.pendencias = pendencies;
+    data.obs = null;
 
-    targetPage.close();
     return data;
 }
 
@@ -47,16 +71,12 @@ async function getLiquidValue(targetPage) {
     return null;
 }
 
-function getPending(situacao) {
+function getPending(situation) {
     const pendencies = [];
-    const isInvalidState = situacao === 'cancelado' || situacao === 'cancelada' || situacao === 'reprovado';
+    const isInvalidState = situation === 'cancelado' || situation === 'cancelada' || situation === 'reprovado';
     if (isInvalidState) {
-        pendencies.push({ observacao: `Proposta ${situacao}` });
+        pendencies.push({ observacao: `Proposta ${situation}` });
         pendencies.push({ tipo_pendencia: 'Pendencia Santander' });
     }
     return pendencies;
-}
-
-async function getElementText(page, selector) {
-    return page.$eval(selector, span => span.textContent);
 }
