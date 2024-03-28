@@ -8,8 +8,11 @@ export async function loginSantander(username, password) {
 
     const browser = await puppeteer.launch({
         args: ['--no-sandbox'],
+        //tester com headless true
         headless: false,
         ignoreDefaultArgs: ['--disable-extensions'], 
+        executablePath: '/usr/bin/google-chrome'
+
     });
 
     const pages = await browser.pages();
@@ -30,6 +33,8 @@ export async function loginSantander(username, password) {
         }
     });
 
+    //testar removendo este trecho
+    page = await browser.newPage();
     await page.goto(url);
 
     await page.type('::-p-xpath(//*[@id="userLogin__input"])', username);
