@@ -6,7 +6,7 @@ export async function getOperationScreen(page, queue, codProposal) {
   try {
     await clickElementByXpath(page, `/html/body/app/ui-view/base-front/header/div[4]/user-menu/div/div`);
     await clickElementByXpath(page, `//*[@id="header"]/div[4]/user-menu/div/nav/div/div[3]/ul/li[2]/a`);
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 4000));
 
     const pages = await page.browser().pages();
     let targetPage;

@@ -37,6 +37,7 @@ COPY . .
 
 # Instala todas as dependências do projeto, incluindo o Puppeteer e o Express
 RUN npm install puppeteer browsers install chrome 
+RUN npm install -g nodemon
 
 # Expõe a porta que sua aplicação Express.js vai usar
 EXPOSE 3000
