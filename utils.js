@@ -15,7 +15,7 @@ export async function elementHover (page, xpath) {
     await page.hover(`::-p-xpath(${xpath})`);
 };
 
-export async function waitTimetout (timming) {
+export async function sleep (timming) {
     await new Promise(resolve => setTimeout(resolve, timming));
 };
 

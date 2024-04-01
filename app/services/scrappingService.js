@@ -1,13 +1,13 @@
-import { clickElementByXpath, waitTimetout, getElementText, checkElement, getElementTextByXpath } from "../../utils.js";
+import { clickElementByXpath, sleep, getElementText, checkElement, getElementTextByXpath } from "../../utils.js";
 
 export async function scrappingProposalData(targetPage, data) {
-    await waitTimetout(500);
+    await sleep(500);
     await clickElementByXpath(targetPage, `//*[@id="ctl00_cph_ucAprCns_j0_j1_grConsulta_ctl02_LkBSit"]`);
 
     data.situacao = await getElementText(targetPage, '#ctl00_cph_ucAprCns_j0_j1_grConsulta_ctl02_LkBSit');
     data.proximaAtividade = await getElementText(targetPage, '#ctl00_cph_ucAprCns_j0_j1_grConsulta_ctl02_LkBDesc');
     
-    await waitTimetout(1500);
+    await sleep(1500);
     const liquidValue = await getLiquidValue(targetPage);
     const pendencies = getPending(data.situacao);
     await targetPage.waitForSelector('::-p-xpath(//*[@id="ctl00_cph_j0_j1_UpdatePanel1"]/table/tbody/tr[1]/td[2]/table[1]/tbody/tr/td/table/tbody)');
@@ -53,7 +53,8 @@ export async function scrappingProposalData(targetPage, data) {
     data.pendencias = pendencies;
     data.obs = null;
 
-    return data;
+    const dataReturn = {"propostas": data};
+    return dataReturn;
 }
 
 async function getLiquidValue(targetPage) {

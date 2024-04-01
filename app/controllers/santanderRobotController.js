@@ -24,7 +24,7 @@ export async function santanderRobot(req, res) {
       }
 
       const responseObj = {
-          status: true,
+          erro: false,
           dados: data.data
       };
       res.status(200).json(responseObj);
