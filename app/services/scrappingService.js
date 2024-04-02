@@ -4,8 +4,10 @@ export async function scrappingProposalData(targetPage, data) {
     await sleep(500);
     await clickElementByXpath(targetPage, `//*[@id="ctl00_cph_ucAprCns_j0_j1_grConsulta_ctl02_LkBSit"]`);
 
-    data.situacao = await getElementText(targetPage, '#ctl00_cph_ucAprCns_j0_j1_grConsulta_ctl02_LkBSit');
     data.proximaAtividade = await getElementText(targetPage, '#ctl00_cph_ucAprCns_j0_j1_grConsulta_ctl02_LkBDesc');
+    data.situacao = data.proximaAtividade;
+    // data.situacao = await getElementText(targetPage, '#ctl00_cph_ucAprCns_j0_j1_grConsulta_ctl02_LkBSit');
+
     
     await sleep(1500);
     const liquidValue = await getLiquidValue(targetPage);
@@ -19,7 +21,7 @@ export async function scrappingProposalData(targetPage, data) {
     data.dataAtivo = null;
     data.horaAtivo = null;
     data.produto = await getElementText(targetPage, '#ctl00_cph_j0_j1_UcDadosCliente_lblProduto');
-    data.status = `${data.situacao} - ${data.proximaAtividade}`;
+    data.status = `${data.situacao}  ${data.proximaAtividade}`;
     data.liberacao1 = null;
     data.liberacao2 = null;
     data.convenio = null;

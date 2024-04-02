@@ -2,9 +2,7 @@ import { clickElementByXpath, elementHover, sleep } from "../../utils.js";
 import { scrappingProposalData } from "./scrappingService.js";
 
 export async function getByQueue(targetPage, queue, codProposal) {
-  try {
-    console.log("ESTOU NO GETBYQUEUE com a url: ", targetPage.url())
-  
+  try {  
     await sleep(1200);
 
     await elementHover(targetPage, `//*[@id="ctl00_cph_Menu1n2"]/table/tbody/tr/td[1]/a`);  

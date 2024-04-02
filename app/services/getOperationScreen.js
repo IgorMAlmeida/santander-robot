@@ -13,9 +13,7 @@ export async function getOperationScreen(page, queue, codProposal) {
   
     for (const currentPage of pages) {
       const url = await currentPage.url();
-      console.log(url);
       if (url === ('https://consignado.santander.com.br/Portal/FI.AC.GUI.FIMENU.aspx')) { 
-        console.log("ACHOU A PAGINA", currentPage.url());
         targetPage = currentPage;        
         break;
       }
@@ -24,9 +22,7 @@ export async function getOperationScreen(page, queue, codProposal) {
     if (!targetPage) {
       getOperationScreen(page, queue, codProposal)
     }
-    console.log("atual url da target PAGE",targetPage.url());
     await targetPage.bringToFront();
-    console.log("atual url da target PAGE",targetPage.url());
 
     await clickElementByXpath(targetPage, `//*[@id="ctl00_ContentPlaceHolder1_j0_j1_DataListMenu_ctl00_LinkButton2"]`);
     await sleep(2000);
