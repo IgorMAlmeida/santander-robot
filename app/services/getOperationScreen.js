@@ -6,7 +6,7 @@ export async function getOperationScreen(page, queue, codProposal) {
   try {
     await clickElementByXpath(page, `/html/body/app/ui-view/base-front/header/div[4]/user-menu/div/div`);
     await clickElementByXpath(page, `//*[@id="header"]/div[4]/user-menu/div/nav/div/div[3]/ul/li[2]/a`);
-    await sleep(4000);
+    await sleep(2800);
 
     const pages = await page.browser().pages();
     let targetPage;
@@ -15,8 +15,8 @@ export async function getOperationScreen(page, queue, codProposal) {
       const url = await currentPage.url();
       console.log(url);
       if (url === ('https://consignado.santander.com.br/Portal/FI.AC.GUI.FIMENU.aspx')) { 
-        console.log("ACHOU A PAGINA");
-        targetPage = currentPage;
+        console.log("ACHOU A PAGINA", currentPage.url());
+        targetPage = currentPage;        
         break;
       }
     } 
@@ -24,9 +24,12 @@ export async function getOperationScreen(page, queue, codProposal) {
     if (!targetPage) {
       getOperationScreen(page, queue, codProposal)
     }
-  
+    console.log("atual url da target PAGE",targetPage.url());
     await targetPage.bringToFront();
+    console.log("atual url da target PAGE",targetPage.url());
+
     await clickElementByXpath(targetPage, `//*[@id="ctl00_ContentPlaceHolder1_j0_j1_DataListMenu_ctl00_LinkButton2"]`);
+    await sleep(2500);
     
     await targetPage.setRequestInterception(true);
     targetPage.on('request', (req) => {

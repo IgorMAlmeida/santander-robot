@@ -5,7 +5,7 @@ export async function getByQueue(targetPage, queue, codProposal) {
   try {
     console.log("ESTOU NO GETBYQUEUE com a url: ", targetPage.url())
   
-    await sleep(5000);
+    await sleep(2000);
 
     await elementHover(targetPage, `//*[@id="ctl00_cph_Menu1n2"]/table/tbody/tr/td[1]/a`);  
     let xpathQueue = `//*[@id="ctl00_cph_Menu1n6"]/td/table/tbody/tr/td/a`;
