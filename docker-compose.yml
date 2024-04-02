@@ -8,3 +8,4 @@ services:
     volumes:
       - ./:/usr/src/
     restart: always
+    command: ["./cleanup_tmp.sh"] 
