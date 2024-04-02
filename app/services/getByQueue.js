@@ -21,7 +21,7 @@ export async function getByQueue(targetPage, queue, codProposal) {
     return { status: true, data: returnProposal.data };
   } catch (error) {
     console.error('Error in getByQueue:', error);
-    return { status: false, data: 'Error in getByQueue: ' + error.message };
+    return { status: false, data: 'Error in getByQueue: ' + error };
   }
 }
 
@@ -105,6 +105,6 @@ async function getByFinished(targetPage, xpathQueue, codProposal) {
     return { status: true, data: result };
   } catch (error) {
     console.error('Error in getByFinished:', error);
-    return { status: false, message: 'Error in getByFinished: ' + error.message };
+    return { status: false, message: 'Error in getByFinished: ' + error };
   }
 }
