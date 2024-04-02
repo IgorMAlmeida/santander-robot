@@ -29,7 +29,7 @@ export async function getOperationScreen(page, queue, codProposal) {
     console.log("atual url da target PAGE",targetPage.url());
 
     await clickElementByXpath(targetPage, `//*[@id="ctl00_ContentPlaceHolder1_j0_j1_DataListMenu_ctl00_LinkButton2"]`);
-    await sleep(2500);
+    await sleep(2000);
     
     await targetPage.setRequestInterception(true);
     targetPage.on('request', (req) => {

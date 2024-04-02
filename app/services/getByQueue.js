@@ -5,7 +5,7 @@ export async function getByQueue(targetPage, queue, codProposal) {
   try {
     console.log("ESTOU NO GETBYQUEUE com a url: ", targetPage.url())
   
-    await sleep(2000);
+    await sleep(1200);
 
     await elementHover(targetPage, `//*[@id="ctl00_cph_Menu1n2"]/table/tbody/tr/td[1]/a`);  
     let xpathQueue = `//*[@id="ctl00_cph_Menu1n6"]/td/table/tbody/tr/td/a`;
@@ -28,7 +28,7 @@ export async function getByQueue(targetPage, queue, codProposal) {
 
 async function getByProgress(targetPage, xpathQueue, codProposal) {
   try {
-    await sleep(800);
+    await sleep(500);
     await clickElementByXpath(targetPage, xpathQueue);
 
     await clickElementByXpath(targetPage, `//*[@id="bbLoc_txt"]`);
@@ -36,6 +36,7 @@ async function getByProgress(targetPage, xpathQueue, codProposal) {
     
     const iframeElement = await targetPage.$(`#ctl00_cph_ucAprCns_popIDProp_frameAjuda`);
     const iframe = await iframeElement.contentFrame();
+    await sleep(500);
     await iframe.type('#ctl00_cph_j0_j1_txtPesq_CAMPO', codProposal);
     await sleep(800);
 
@@ -48,15 +49,13 @@ async function getByProgress(targetPage, xpathQueue, codProposal) {
     if (returnPage.includes('Nenhum registro foi encontrado')) {
       await clickElementByXpath(iframe, `//*[@id="btnFechar_txt"]`);
       await sleep(800);
-
       await clickElementByXpath(targetPage, `//*[@id="ctl00_cph_ucAprCns_j0_j1_bbVoltar_dvTxt"]/table/tbody/tr/td`);
       await sleep(800);
-
       return getByQueue(targetPage, 'finalizadas', codProposal);
     }
 
     await clickElementByXpath(iframe, `//*[@id="ctl00_cph_j0_j1_grResultado_ctl02_lb"]`);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await sleep(800);
 
     let data = {'propostas': []};  
     const result = await scrappingProposalData(targetPage, data);
@@ -70,7 +69,7 @@ async function getByProgress(targetPage, xpathQueue, codProposal) {
 
 async function getByFinished(targetPage, xpathQueue, codProposal) {
   try {
-    await sleep(800);
+    await sleep(500);
     await clickElementByXpath(targetPage, xpathQueue);
 
     await clickElementByXpath(targetPage, `//*[@id="bbLoc_txt"]`);
@@ -78,6 +77,7 @@ async function getByFinished(targetPage, xpathQueue, codProposal) {
     
     const iframeElement = await targetPage.$(`#ctl00_cph_ucAprCns_popIDProp_frameAjuda`);
     const iframe = await iframeElement.contentFrame();
+    await sleep(500);
     await iframe.type('#ctl00_cph_j0_j1_txtPesq_CAMPO', codProposal);
     await sleep(800);
 
