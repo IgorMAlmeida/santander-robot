@@ -1,4 +1,4 @@
-import { clickElementByXpath } from "../../utils.js";
+import { clickElementByXpath, sleep } from "../../utils.js";
 import { getByQueue } from "./getByQueue.js"
 
 export async function getOperationScreen(page, queue, codProposal) {
@@ -6,22 +6,22 @@ export async function getOperationScreen(page, queue, codProposal) {
   try {
     await clickElementByXpath(page, `/html/body/app/ui-view/base-front/header/div[4]/user-menu/div/div`);
     await clickElementByXpath(page, `//*[@id="header"]/div[4]/user-menu/div/nav/div/div[3]/ul/li[2]/a`);
-    await new Promise(resolve => setTimeout(resolve, 4000));
+    await sleep(4000);
 
     const pages = await page.browser().pages();
     let targetPage;
   
     for (const currentPage of pages) {
       const url = await currentPage.url();
-      if (url.includes('https://consignado.santander.com.br/Portal/FI.AC.GUI.FIMENU.aspx')) { 
+      console.log(url);
+      if (url === ('https://consignado.santander.com.br/Portal/FI.AC.GUI.FIMENU.aspx')) { 
         targetPage = currentPage;
         break;
       }
     } 
     
     if (!targetPage) {
-      console.error('Página com a URL desejada não encontrada.');
-      return null;
+      getOperationScreen(page, queue, codProposal)
     }
   
     await targetPage.bringToFront();
