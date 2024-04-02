@@ -8,3 +8,4 @@ services:
     volumes:
       - ./:/usr/src/
     restart: always
+    entrypoint: "./entrypoint.sh"
