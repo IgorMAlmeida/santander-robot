@@ -1,4 +1,4 @@
-import { clickElementByXpath, sleep, getElementText, checkElement, getElementTextByXpath } from "../../utils.js";
+import { clickElementByXpath, sleep, getElementText, checkElement, getElementTextByXpath, replaceValues } from "../../utils.js";
 
 export async function scrappingProposalData(targetPage, data) {
     await sleep(500);
@@ -23,20 +23,20 @@ export async function scrappingProposalData(targetPage, data) {
     data.liberacao1 = null;
     data.liberacao2 = null;
     data.convenio = null;
-    data.valorPrincipal = liquidValue;
-    data.valorParcela = await getElementText(targetPage, '#ctl00_cph_j0_j1_UcDadosCliente_lblValorParcela');
+    data.valorPrincipal = replaceValues(liquidValue);
+    data.valorParcela = replaceValues(await getElementText(targetPage, '#ctl00_cph_j0_j1_UcDadosCliente_lblValorParcela'));
     data.promotora = null;
     data.digitadora = null;
     data.usuario = null;
     data.loginDigitador = null;
-    data.valorBruto = await getElementText(targetPage, '#ctl00_cph_j0_j1_UcDadosCliente_lblValorSolicitado');
+    data.valorBruto = replaceValues(await getElementText(targetPage, '#ctl00_cph_j0_j1_UcDadosCliente_lblValorSolicitado'));
     data.propostaAverbada = 'N';
     const isElementPresent = await checkElement(targetPage, '//*[@id="ctl00_cph_j0_j1_UcDadosCliente_lbPercAverb"]');
     if (isElementPresent) {    
         data.propostaAverbada = await getElementTextByXpath(targetPage, '//*[@id="ctl00_cph_j0_j1_UcDadosCliente_lbPercAverb"]') === '100%' ? 'S' : data.propostaAverbada;
     }
     data.valorTroco = null;
-    data.valorSeguro = await getElementText(targetPage, '#ctl00_cph_j0_j1_UcDadosCliente_lblSeguro');
+    data.valorSeguro = replaceValues(await getElementText(targetPage, '#ctl00_cph_j0_j1_UcDadosCliente_lblSeguro'));
     data.simulacaoRefin  = null;
     data.dataAverbacao   = null;
     data.dataPagamento   = null;

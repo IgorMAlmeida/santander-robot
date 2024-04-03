@@ -41,3 +41,8 @@ export async function getElementTextByXpath(page, xpath) {
     const element = await page.$(`::-p-xpath(${xpath})`);
     return element.evaluate(el => el.textContent);
 }
+
+export function replaceValues(value) {
+    let newValue = value.replace(/\./g, '');
+    return newValue.replace(/,/g, '.');
+}
