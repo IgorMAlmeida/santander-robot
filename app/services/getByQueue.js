@@ -3,7 +3,7 @@ import { scrappingProposalData } from "./scrappingService.js";
 
 export async function getByQueue(targetPage, queue, codProposal) {
   try {  
-    await sleep(1200);
+    await sleep(1500);
 
     await elementHover(targetPage, `//*[@id="ctl00_cph_Menu1n2"]/table/tbody/tr/td[1]/a`);  
     let xpathQueue = `//*[@id="ctl00_cph_Menu1n6"]/td/table/tbody/tr/td/a`;
