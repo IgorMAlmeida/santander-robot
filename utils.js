@@ -43,6 +43,8 @@ export async function getElementTextByXpath(page, xpath) {
 }
 
 export function replaceValues(value) {
-    let newValue = value.replace(/\./g, '');
-    return newValue.replace(/,/g, '.');
+    if (value.includes('.')) {
+        let newValue = value.replace(/\./g, '');
+        return newValue.replace(/,/g, '.');
+    }
 }
