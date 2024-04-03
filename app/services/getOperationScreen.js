@@ -22,6 +22,8 @@ export async function getOperationScreen(page, queue, codProposal) {
     if (!targetPage) {
       getOperationScreen(page, queue, codProposal)
     }
+
+    await sleep(1000);
     await targetPage.bringToFront();
 
     await clickElementByXpath(targetPage, `//*[@id="ctl00_ContentPlaceHolder1_j0_j1_DataListMenu_ctl00_LinkButton2"]`);
