@@ -34,7 +34,7 @@ async function getByProgress(targetPage, xpathQueue, codProposal) {
     
     const iframeElement = await targetPage.$(`#ctl00_cph_ucAprCns_popIDProp_frameAjuda`);
     const iframe = await iframeElement.contentFrame();
-    await sleep(500);
+    await sleep(900);
     await iframe.type('#ctl00_cph_j0_j1_txtPesq_CAMPO', codProposal);
     await sleep(800);
 
@@ -75,7 +75,7 @@ async function getByFinished(targetPage, xpathQueue, codProposal) {
     
     const iframeElement = await targetPage.$(`#ctl00_cph_ucAprCns_popIDProp_frameAjuda`);
     const iframe = await iframeElement.contentFrame();
-    await sleep(500);
+    await sleep(900);
     await iframe.type('#ctl00_cph_j0_j1_txtPesq_CAMPO', codProposal);
     await sleep(800);
 
