@@ -16,8 +16,8 @@ router.post('/santanderRobot', upload.none(), async (req, res) => {
         res.status(200).json(response);
     } catch (error) {
 
-        console.error('Erro ao processar a solicitação:', message);
-        res.status(500).json({ status: false, error: error.message });
+        console.error('Erro ao processar a solicitação:', error);
+        res.status(500).json({ status: false, error: error });
     }
   });
 
