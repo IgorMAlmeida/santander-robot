@@ -11,7 +11,6 @@ export async function loginSantander(username, password) {
         headless: false,
         ignoreDefaultArgs: ['--disable-extensions'], 
         executablePath: '/usr/bin/google-chrome'
-
     });
     const page = await browser.newPage();
 

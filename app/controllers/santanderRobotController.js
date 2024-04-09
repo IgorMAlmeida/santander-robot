@@ -18,6 +18,7 @@ export async function santanderRobot(req, res) {
 
     if (!data.status) {
       if(retriedTimes < retryTimes) {
+        await browser.close();
         retriedTimes++;
         await santanderRobot(req, res);
         return;
