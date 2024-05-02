@@ -9,15 +9,15 @@ router.post('/santanderRobot', upload.none(), async (req, res) => {
     try {
         const response = await santanderRobot(req, res);
 
-        if (response.status) {
-            throw new Error(response.message);
+        if (response.error) {
+            throw new Error(response.mensagem);
         }
 
         res.status(200).json(response);
-    } catch (error) {
+    } catch (err) {
 
-        console.error('Erro ao processar a solicitação:', error);
-        res.status(500).json({ status: false, error: error });
+        console.error('Erro ao processar a solicitação:', err);
+        res.status(500).json({ status: false, error: err });
     }
   });
 

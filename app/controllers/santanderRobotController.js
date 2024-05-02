@@ -11,16 +11,16 @@ export async function santanderRobot(req, res) {
   try {
     const codProposalProposal = req.body.propostaId;      
     const username = 'EX114688';
-    const password = 'CF@5400';
+    const password = 'CF@5410';
 
     const { page, browser } = await loginSantander(username, password);
     const data = await getOperationScreen(page, 'andamento', codProposalProposal);
 
     if (!data.status) {
       if(retriedTimes < retryTimes) {
-        await browser.close();
+        // await browser.close();
         retriedTimes++;
-        await santanderRobot(req, res);
+        // await santanderRobot(req, res);
         return;
       }
       await browser.close();
@@ -35,7 +35,7 @@ export async function santanderRobot(req, res) {
     await browser.close();
     return (responseObj);
 
-  } catch (error) {
-    return ({ status: false, mensagem: 'Internal Server Error' });
+  } catch (err) {
+    return ({ err: true, mensagem: 'Internal Server Error' });
   }
 }
