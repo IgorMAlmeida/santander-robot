@@ -55,11 +55,9 @@ export async function getElementTextByXpath(page, xpath) {
 }
 
 export async function checkElementAndText(page, selector) {
-    console.log(selector);
-    
     try {
         const element = await page.$(`::-p-xpath(${selector})`);
-        
+
         if(!element) {
             throw new Error('Element not found');
         }

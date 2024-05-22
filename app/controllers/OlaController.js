@@ -2,6 +2,7 @@ import { loginOle } from '../services/loginOle.js';
 import { getConsultProposalScreen } from '../services/getConsultProposalScreen.js';
 import dotenv from 'dotenv';
 import puppeteer from 'puppeteer';
+import { blockUnnecessaryRequests } from '../../utils.js';
 dotenv.config();
 
 const retryTimes = 5;
@@ -11,7 +12,7 @@ export async function ProposalConsult(req, res) {
   let result = [];
 
   const browser = await puppeteer.launch({
-    args: ['--no-sandbox'],
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
     headless: false,
     ignoreDefaultArgs: ['--disable-extensions', '--enable-automation'], 
     executablePath: '/usr/bin/google-chrome'
@@ -19,40 +20,35 @@ export async function ProposalConsult(req, res) {
 
   const page = await browser.newPage();
 
+  await blockUnnecessaryRequests(page);
+
   try {
-    const proposals = req.body.proposals; 
+    const proposals = req?.body?.proposals; 
     const url = process.env.OLE_URL_BASE;
     const username = process.env.OLE_LOGIN;
     const password = process.env.PASS_LOGIN;
     
     for(const proposal of proposals) {
-      const inputProposal = await page.$('::-p-xpath(//*[@id="NumeroProposta"])');
+      await loginOle(page, username, password, url);
 
-      if(!inputProposal){
-        const isLoggedIn = await loginOle(page, username, password, url);
-
-        if (!isLoggedIn) {
-          if(retriedTimes < retryTimes) {
-            await browser.close();
-            retriedTimes++;
-            await ProposalConsult(req, res);
-            return;
-          }
-
-          await browser.close();
-
-          throw new Error('Error 500 OLE SITE');
-        }
-      }
-
-      const data = await getConsultProposalScreen(page, proposal);
+      const data = await getConsultProposalScreen(page, proposal.toString());
       const hasValue = data.status;
       
       if (!hasValue) {
-        throw new Error(data.data);
+        result.push({
+          proposal: proposal,
+          status: false,
+          data: "Erro na consulta"
+        });
+
+        continue;
       }
 
-      result.push(data.data);
+      result.push({
+        proposal: proposal,
+        status: true,
+        data: data.data
+      });
     }
 
     await browser.close();
