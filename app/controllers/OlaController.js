@@ -5,16 +5,13 @@ import puppeteer from 'puppeteer';
 import { blockUnnecessaryRequests } from '../../utils.js';
 dotenv.config();
 
-const retryTimes = 5;
-let retriedTimes = 0;
-
 export async function ProposalConsult(req, res) {
   let result = [];
 
   const browser = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    args: ['--no-sandbox'],
     headless: false,
-    ignoreDefaultArgs: ['--disable-extensions', '--enable-automation'], 
+    ignoreDefaultArgs: ['--disable-extensions'], 
     executablePath: '/usr/bin/google-chrome'
   });
 
@@ -31,7 +28,7 @@ export async function ProposalConsult(req, res) {
     for(const proposal of proposals) {
       await loginOle(page, username, password, url);
 
-      const data = await getConsultProposalScreen(page, proposal.toString());
+      const data = await getConsultProposalScreen(page, proposal);
       const hasValue = data.status;
       
       if (!hasValue) {
