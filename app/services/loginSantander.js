@@ -28,7 +28,7 @@ export async function loginSantander(username, password) {
     await page.type('::-p-xpath(//*[@id="userLogin__input"])', username);
     await page.type('::-p-xpath(//*[@id="userPassword__input"])', password);
     await Promise.all([
-      page.waitForNavigation(),
+      await page.waitForNavigation(),
       clickElementByXpath(page,'//html/body/app/ui-view/login/div/div/div/div/div[2]/div[3]/button[2]'), 
     ]);
 
