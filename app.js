@@ -7,6 +7,6 @@ app.use(express.json());
 
 app.use('/', routes);
 
-app.listen(8000, function() {
+app.listen(3050, function() {
     console.log('Running on port 3050.');
 });
