@@ -49,6 +49,8 @@ export async function ProposalConsult(req, res) {
         status: true,
         data: data.data
       });
+
+      console.log(`The process was completed successfully for proposal: ${proposal}`);
     }
 
     await browser.close();

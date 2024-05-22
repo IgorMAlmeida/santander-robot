@@ -9,12 +9,12 @@ export async function getConsultProposalScreen(page, codProposal) {
     await page.type('::-p-xpath(//*[@id="NumeroProposta"])', codProposal);
     await clickElementByXpath(page,'//*[@id="btnPesquisar"]');
 
-    await sleep(1500);
+    await sleep(2000);
     const messageError = await checkElementAndText(page, '//*[@id="divMensagemErro"]/ul/li');
     if(messageError.status && messageError.text === 'Nenhuma proposta encontrada para o(s) filtro(s) informado(s).') {
       throw new Error('Nenhuma proposta encontrada para o(s) filtro(s) informado(s).');
     }
-    
+
     const result = await scrappingOlaConsult(page);
     if(!result.status) {
       throw new Error(result);

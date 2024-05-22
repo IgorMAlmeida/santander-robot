@@ -4,7 +4,7 @@ services:
   app:
     build: .
     ports:
-      - "3050:3050"
+      - "8080:8000"
     volumes:
       - ./:/usr/src/
     restart: always

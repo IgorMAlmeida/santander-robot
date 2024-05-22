@@ -65,7 +65,6 @@ export async function checkElementAndText(page, selector) {
         const textoElemento = await element.evaluate(el => el.textContent);
         return { status: true, text: textoElemento };        
     } catch (error) {
-        console.error('Ocorreu um erro ao verificar o elemento:', error);
         return {status: false};
     }
 }
