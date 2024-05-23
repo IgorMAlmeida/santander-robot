@@ -14,7 +14,10 @@
     "express": "^4.19.2",
     "multer": "^1.4.5-lts.1",
     "nodemon": "^3.1.0",
-    "puppeteer": "^22.6.1",
+    "puppeteer": "^22.9.0",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-adblocker": "^2.13.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "xvfb": "^0.4.0"
   }
 }

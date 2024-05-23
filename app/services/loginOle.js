@@ -1,11 +1,12 @@
 import { clickElementByXpath, checkElementAndText } from "../../utils.js";
 
+
 let retryTimes = 0;
 
-export async function loginOle(page, username, password, url) {
+export async function loginOle(page, url, username, password) {
   try {
     await page.goto("https://ola.oleconsignado.com.br/ConsultaDeProposta/Index", { waitUntil: 'domcontentloaded' });
-    const inputProposal = await checkElementAndText(page, '//*[@id="NumeroProposta"]')
+    const inputProposal = await checkElementAndText(page, '//*[@id="CPF"]')
 
     if(inputProposal.status) {
       return true
