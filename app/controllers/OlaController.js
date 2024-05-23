@@ -48,6 +48,7 @@ export async function ProposalConsult(req, res) {
       });
 
       console.log(`The process was completed successfully for proposal: ${proposal}`);
+      console.log(`Processed ${proposals.indexOf(proposal) + 1} of ${proposals.length} proposals`);
     }
 
     await browser.close();
