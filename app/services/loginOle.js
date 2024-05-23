@@ -12,6 +12,7 @@ export async function loginOle(page, url, username, password) {
       return true
     }
     
+    console.log('Iniciando Login...');
     await page.goto(url);
     const error5001 = await checkElementAndText(page, '/html/body/div/div/div/h1');
     if(error5001.status) {
@@ -23,8 +24,10 @@ export async function loginOle(page, url, username, password) {
     clickElementByXpath(page,'//*[@id="botaoAcessar"]');
    
     await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
+    console.log('Logado');
 
     await page.goto("https://ola.oleconsignado.com.br/ConsultaDeProposta/Index", { waitUntil: 'domcontentloaded' });
+    console.log('Iniciando consulta');
     
     const error500 = await checkElementAndText(page, '/html/body/div/div/div/h1');
     if(error500.status) {
