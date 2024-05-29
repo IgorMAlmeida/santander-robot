@@ -6,8 +6,8 @@ export async function getByXpath (page, xpath) {
 
 export async function clickElementByXpath (page, xpath) {
 
-    await page.waitForSelector(`::-p-xpath(${xpath})`);
-    await page.click(`::-p-xpath(${xpath})`);
+    const button = await page.waitForSelector(`::-p-xpath(${xpath})`);
+    await button.click();
 
 };
 
