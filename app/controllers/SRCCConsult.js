@@ -31,7 +31,7 @@ export async function SRCCConsult(cpf) {
     await loginSRCC(page, url, username, password);
 
     const data = await consultSRCC(page, cpf);
-    
+
     if (!data.status) {
       throw new Error(data.data);
     }
@@ -40,7 +40,7 @@ export async function SRCCConsult(cpf) {
 
     return {
       status: true,
-      response: "The registro was found successfully",
+      response: "Registro encontrado com sucesso",
       data: null
     };
   } catch (err) {

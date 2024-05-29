@@ -37,6 +37,11 @@ export async function checkElement(page, selector) {
     }
 }
 
+export async function getElementClass(page, selector) {
+    const element = await getByXpath(page, selector);
+    return element.evaluate(el => el.className);
+}
+
 export async function blockUnnecessaryRequests(page) {
     await page.setRequestInterception(true);
     page.on('request', req => {

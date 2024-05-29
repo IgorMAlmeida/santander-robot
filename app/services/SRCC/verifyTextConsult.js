@@ -5,7 +5,7 @@ export async function verifyTextConsult(page) {
     const text = await getElementTextByXpath(page, '//*[@id="MensagemRetornoConsultaSrccInformativa"]/b');
 
     if(!text || text.includes("não foi identificado nenhum registro até o momento")) {
-        throw new Error("Registro não encontrado")
+      throw new Error("Registro não encontrado")
     }
 
     return { 
