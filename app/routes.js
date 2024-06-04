@@ -2,8 +2,8 @@ import express from 'express';
 import multer from 'multer';
 import { santanderRobot } from './controllers/santanderRobotController.js';
 import { ProposalConsult } from './controllers/OlaController.js';
-import { SRCCConsult } from './controllers/SRCCConsult.js';
-import { ConsultSRCCByFile } from './controllers/ConsultSRCCByFile.js';
+import { C6Consult } from './controllers/C6Consult.js';
+import { ConsultSRCCByArray } from './controllers/ConsultSRCCByArray.js';
 
 const upload = multer({ dest: 'uploads/' });
 const router = express.Router();
@@ -48,15 +48,15 @@ router.post('/api/consult/proposal', async (req, res) => {
     }
 });
 
-router.get('/api/consult/srcc', async (req, res) => {
+router.get('/api/consult/c6/srcc', async (req, res) => {
     try {
-        const cpf = req?.query?.cpf;
+        const proposal = req?.query?.proposal;
 
-        if (!cpf) {
-            throw new Error('The CPF was not informed');
+        if (!proposal) {
+            throw new Error('The proposal was not informed');
         }
 
-        const response = await SRCCConsult(cpf);
+        const response = await C6Consult(proposal);
 
         if (!response.status) {
             throw new Error(response.response);
@@ -73,6 +73,6 @@ router.get('/api/consult/srcc', async (req, res) => {
     }
 });
 
-router.post('/api/consult/srcc/upload', upload.single('file'), ConsultSRCCByFile);
+router.post('/api/consult/srcc/proposals', ConsultSRCCByArray);
 
 export default router;

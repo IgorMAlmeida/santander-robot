@@ -3,17 +3,13 @@ import { executablePath } from 'puppeteer';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import AdblockerPlugin from 'puppeteer-extra-plugin-adblocker';
 
-import { loginSRCC } from '../services/SRCC/loginSRCC.js';
-import { consultSRCC } from '../services/SRCC/consultSRCC.js';
-
-import dotenv from 'dotenv';
-dotenv.config();
+import { loginSRCC } from '../services/C6/loginSRCC.js';
+import { consultSRCC } from '../services/C6/consultSRCC.js';
 
 puppeteer.use(StealthPlugin());
 puppeteer.use(AdblockerPlugin({ blockTrackers: true }));
 
-
-export async function SRCCConsult(cpf) {
+export async function C6Consult(proposal) {
   const browser = await puppeteer.launch({
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
     headless: false,
@@ -24,13 +20,14 @@ export async function SRCCConsult(cpf) {
   const page = await browser.newPage();
 
   try {
-    const url = process.env.OLE_URL_BASE;
-    const username = process.env.SRCC_LOGIN;
-    const password = process.env.SRCC_PASS_LOGIN;
-    
-    await loginSRCC(page, url, username, password);
+    console.log('Iniciando Login...');
+    const loginData = await loginSRCC(page);
 
-    const data = await consultSRCC(page, cpf);
+    if (!loginData.status) {
+      throw new Error(loginData.data);
+    }
+
+    const data = await consultSRCC(page, proposal);
 
     if (!data.status) {
       throw new Error(data.data);
@@ -41,7 +38,7 @@ export async function SRCCConsult(cpf) {
     return {
       status: true,
       response: "Registro encontrado com sucesso",
-      data: null
+      data: data.data
     };
   } catch (err) {
     await browser.close();
