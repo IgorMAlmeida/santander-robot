@@ -4,9 +4,12 @@ import { santanderRobot } from './controllers/santanderRobotController.js';
 import { ProposalConsult } from './controllers/OlaController.js';
 import { C6Consult } from './controllers/C6Consult.js';
 import { ConsultSRCCByArray } from './controllers/ConsultSRCCByArray.js';
+import { PortalConsig } from './controllers/PortalConsig.js';
 
 const upload = multer({ dest: 'uploads/' });
-const router = express.Router();
+const router = express.Router()
+router.use(express.json());
+router.use(express.urlencoded({ extended: true })); ;
 
 router.post('/santanderRobot', async (req, res) => {
     try {
@@ -74,5 +77,36 @@ router.get('/api/consult/c6/srcc', async (req, res) => {
 });
 
 router.post('/api/consult/srcc/proposals', ConsultSRCCByArray);
+
+
+router.post('/api/consult/portal_consig', upload.none(), async (req, res) => {
+    try {
+        const data = {
+            cpf: req?.body?.cpf,       
+            registration: req?.body?.matricula,
+            destiny: req?.body?.destino,  
+        };
+        
+        if (!data.cpf || !data.registration || !data.destiny) {
+            throw new Error('Missing parameters');
+        }
+        
+        const response = await PortalConsig(data);
+
+        if (!response.status) {
+            throw new Error(response.response);
+        }
+
+        res.status(200).json(response);
+    } catch (err) {
+        console.error('Erro ao processar a solicitação:', err);
+        res.status(400).json({
+            status: false,
+            response: err.message,
+            data: null
+        });
+    }
+});
+
 
 export default router;

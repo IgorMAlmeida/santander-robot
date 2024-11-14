@@ -1,7 +1,13 @@
 # Use uma imagem base oficial do Node.js
 FROM node:20.11.1
+
 # Define o diretório de trabalho dentro do container
 WORKDIR /usr/src/app
+
+# Configura o Puppeteer para baixar o Chrome dentro do cache
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
 
 # Instala as dependências do Puppeteer e do Express
 # Nota: o Puppeteer precisa do Chrome, então estamos instalando dependências para o Chrome funcionar no Docker
@@ -29,17 +35,21 @@ RUN apt-get update && apt-get install -y \
     && apt-get autoremove \
     && mkdir -p /var/lib/apt/lists/partial
 
+# Copia os arquivos do projeto para o diretório de trabalho
+COPY package.json /usr/src/app/package.json
 
+# Instala as dependências do projeto
+RUN npm install
+
+# Instala o Puppeteer no cache (sem baixar o Chrome novamente)
+RUN npx puppeteer install --chrome
+
+RUN mkdir -p /usr/src/app/user_data && chmod -R 777 /usr/src/app/user_data
+
+# Configura o display para o Chrome headless
 ENV DISPLAY=:99
 
-# Copia os arquivos do projeto para o diretório de trabalho
-COPY . .
-
-# Instala todas as dependências do projeto, incluindo o Puppeteer e o Express
-RUN npm install puppeteer browsers install chrome 
-RUN npm install -g nodemon
-
-# Expõe a porta que sua aplicação Express.js vai usar
+# Expõe a porta que a aplicação vai usar
 EXPOSE 3050
 
 # Comando para rodar a aplicação

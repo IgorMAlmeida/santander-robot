@@ -7,5 +7,6 @@ services:
       - "3050:3050"
     volumes:
       - ./:/usr/src/
+      - ~/.cache/puppeteer:/root/.cache/puppeteer 
     restart: always
     entrypoint: "./entrypoint.sh"

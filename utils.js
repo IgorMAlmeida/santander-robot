@@ -54,6 +54,22 @@ export async function blockUnnecessaryRequests(page) {
     });
 }
 
+export async function awaitElement(page, selector) {
+    try{
+        const element = await page.waitForSelector(`xpath=${selector}`, { timeout: 1000 });
+
+        return {
+            status: true,
+            data: element
+        }
+    }catch (error) {
+        return {
+            status: false,
+            data: error
+        }
+    }
+}
+
 export async function getElementTextByXpath(page, xpath) {
     const element = await page.$(`::-p-xpath(${xpath})`);
     return element.evaluate(el => el.textContent);
@@ -70,7 +86,7 @@ export async function checkElementAndText(page, selector) {
         const textoElemento = await element.evaluate(el => el.textContent);
         return { status: true, text: textoElemento };        
     } catch (error) {
-        return {status: false};
+        return {status: false, text: error };
     }
 }
 
