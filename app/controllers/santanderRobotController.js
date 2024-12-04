@@ -47,35 +47,35 @@ export async function santanderRobot(req, res) {
 export async function santanderRobotProposal(req, res) {
   try {
     const url = 'https://www.parceirosantander.com.br/spa-base/landing-page';
-      
+    
     const browser = await puppeteer.launch({ 
-        headless: false, 
-        args: [
-          '--disable-blink-features=AutomationControlled', 
-          '--no-sandbox', 
-          '--disable-setuid-sandbox',
-          '--disable-gpu',
-          '--window-size=1920x1080',
-          '--disable-infobars',
-          '--disable-extensions',
-          '--disable-software-rasterizer',
-          '--remote-debugging-port=9222',
+      headless: false, 
+      args: [
+        '--disable-blink-features=AutomationControlled', 
+        '--no-sandbox', 
+        '--disable-setuid-sandbox',
+        '--disable-gpu',
+        '--window-size=1920x1080',
+        '--disable-infobars',
+        '--disable-extensions',
+        '--disable-software-rasterizer',
+        '--remote-debugging-port=9222',
       ]
     });
 
     const page = await browser.newPage();
-
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.79 Safari/537.36');
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
 
     await page.goto(url, { waitUntil: 'networkidle0' });
 
     await page.waitForSelector('#action__access-portal');
-    await page.click('#action__access-portal')
-    await sleep(2000)
+    await page.click('#action__access-portal');
+    await sleep(2000);
+
     const pages = await browser.pages();
     const newPage = pages[pages.length - 1];
     await newPage.bringToFront();
-    await sleep(2000)
+    await sleep(2000);
 
     const result = await newPage.evaluate(() => {
       const loginForm = document.getElementById('form');
@@ -108,13 +108,15 @@ export async function santanderRobotProposal(req, res) {
       }
     });
 
-    await sleep(1000)
+    await sleep(1000);
 
     await newPage.waitForSelector('#kc-form-login-btn'); 
     await newPage.click('#kc-form-login-btn');
-    await sleep(2000)
+    await sleep(2000);
+
     await page.goto('https://www.parceirosantander.com.br/spa-base/logged-area/support', { waitUntil: 'networkidle0' });
-    await sleep(1000)
+    await sleep(2000); // Aumentei o tempo de espera para garantir que a página carregue
+
     const data = await page.evaluate(() => {
       const items = document.querySelectorAll('dss-list-item');
   
@@ -137,11 +139,25 @@ export async function santanderRobotProposal(req, res) {
       return extractedData;
     });
 
+    console.log(data);
+
+    // Tentar interagir com a seção de informações do usuário
+    await page.waitForSelector('.container-userinfo', { timeout: 5000 }); // Aumentei o timeout para garantir a detecção
+    await page.click('.container-userinfo');
+    await sleep(2000);  // Aumentei o tempo de espera
+
+    await page.waitForSelector('.dss-button--icon-button', { timeout: 5000 }); // Timeout aumentado
+    await page.click('.dss-button--icon-button');
+    await sleep(2000);
+
     await browser.close();
-    return data
+    return data;
+
   } catch (error) {
     console.error('Erro durante a execução do script:', error);
+    return { error: 'Erro ao executar o robô.' };
   }
 }
+
 
 
