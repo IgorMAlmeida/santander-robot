@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { santanderRobot } from './controllers/santanderRobotController.js';
+import { santanderRobot, santanderRobotProposal } from './controllers/santanderRobotController.js';
 import { ProposalConsult } from './controllers/OlaController.js';
 import { C6Consult } from './controllers/C6Consult.js';
 import { ConsultSRCCByArray } from './controllers/ConsultSRCCByArray.js';
@@ -105,6 +105,24 @@ router.post('/api/consult/portal_consig', upload.none(), async (req, res) => {
             response: err.message,
             data: null
         });
+    }
+});
+
+
+router.post('/santander_proposals', async (req, res) => {
+    try {
+
+        const response = await santanderRobotProposal(req, res);
+
+        // if (response.error) {
+        //     throw new Error(response.mensagem);
+        // }
+
+        res.status(200).json(response);
+    } catch (err) {
+
+        console.error('Erro ao processar a solicitação:', err);
+        res.status(500).json({ status: false, error: err });
     }
 });
 

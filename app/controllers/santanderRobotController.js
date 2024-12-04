@@ -1,6 +1,8 @@
 import express from 'express';
 import { loginSantander } from '../services/loginSantander.js';
 import { getOperationScreen } from '../services/getOperationScreen.js';
+import puppeteer from 'puppeteer';
+import { sleep } from '../../utils.js';
 
 const app = express();
 
@@ -39,3 +41,107 @@ export async function santanderRobot(req, res) {
     return ({ err: true, mensagem: 'Internal Server Error' });
   }
 }
+
+
+
+export async function santanderRobotProposal(req, res) {
+  try {
+    const url = 'https://www.parceirosantander.com.br/spa-base/landing-page';
+      
+    const browser = await puppeteer.launch({ 
+        headless: false, 
+        args: [
+          '--disable-blink-features=AutomationControlled', 
+          '--no-sandbox', 
+          '--disable-setuid-sandbox',
+          '--disable-gpu',
+          '--window-size=1920x1080',
+          '--disable-infobars',
+          '--disable-extensions',
+          '--disable-software-rasterizer',
+          '--remote-debugging-port=9222',
+      ]
+    });
+
+    const page = await browser.newPage();
+
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.79 Safari/537.36');
+
+    await page.goto(url, { waitUntil: 'networkidle0' });
+
+    await page.waitForSelector('#action__access-portal');
+    await page.click('#action__access-portal')
+    await sleep(2000)
+    const pages = await browser.pages();
+    const newPage = pages[pages.length - 1];
+    await newPage.bringToFront();
+    await sleep(2000)
+
+    const result = await newPage.evaluate(() => {
+      const loginForm = document.getElementById('form');
+      if (!loginForm) {
+        return { error: 'Elemento <login-form> não encontrado.' };
+      }
+
+      const shadowRoot = loginForm.shadowRoot || loginForm.sr;
+      if (!shadowRoot) {
+        return { success: false, error: 'ShadowRoot não encontrado.' };
+      }
+
+      const cpfInput = shadowRoot.querySelector('#inputUser');
+      const passwordInput = shadowRoot.querySelector('#inputPassword');
+      if (!cpfInput || !passwordInput) {
+        return { success: false, error: 'Campos CPF ou Senha não encontrados.' };
+      }
+
+      cpfInput.value = '141.476.226-74';
+      passwordInput.value = 'Cfp@2020';
+
+      return { success: true, message: 'Campos preenchidos com sucesso.' };
+
+    });
+
+    await newPage.evaluate(() => {
+      const loginButton = document.querySelector('#kc-form-login-btn');
+      if (loginButton && loginButton.hasAttribute('disabled')) {
+        loginButton.removeAttribute('disabled');
+      }
+    });
+
+    await sleep(1000)
+
+    await newPage.waitForSelector('#kc-form-login-btn'); 
+    await newPage.click('#kc-form-login-btn');
+    await sleep(2000)
+    await page.goto('https://www.parceirosantander.com.br/spa-base/logged-area/support', { waitUntil: 'networkidle0' });
+    await sleep(1000)
+    const data = await page.evaluate(() => {
+      const items = document.querySelectorAll('dss-list-item');
+  
+      const extractedData = Array.from(items).map(item => {
+        const cliente = item.querySelector('dss-list-item-title:nth-child(1) .dss-body')?.textContent.trim();
+        const regra = item.querySelector('dss-list-item-title:nth-child(2) .dss-body')?.textContent.trim();
+        const digitacao = item.querySelector('dss-list-item-title:nth-child(3) .dss-body')?.textContent.trim();
+        const proposta = item.querySelector('dss-list-item-title:nth-child(4) .dss-body')?.textContent.trim();
+        const status = item.querySelector('dss-list-item-title:nth-child(5) .dss-body')?.textContent.trim();
+  
+        return {
+          cliente,
+          regra,
+          digitacao,
+          proposta,
+          status
+        };
+      });
+  
+      return extractedData;
+    });
+
+    await browser.close();
+    return data
+  } catch (error) {
+    console.error('Erro durante a execução do script:', error);
+  }
+}
+
+
