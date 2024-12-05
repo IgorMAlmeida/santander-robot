@@ -2,11 +2,8 @@ import { sleep } from '../../utils.js';
 import { loginSantanderPartner } from './loginSantanderPartner.js';
 
 export async function getProposalData(propostaId) {
-  const username = '141.476.226-74';
-  const password = 'Cfp@2020';
-
   try {
-    const { page, browser } = await loginSantanderPartner(username, password);
+    const { page, browser } = await loginSantanderPartner();
 
     await page.goto('https://www.parceirosantander.com.br/spa-base/logged-area/support', { waitUntil: 'networkidle0' });
 
