@@ -2,7 +2,6 @@ import puppeteer from 'puppeteer';
 import { sleep } from "../../utils.js";
 
 export async function loginSantanderPartner(username, password) {
-  
   try {
     const url = 'https://www.parceirosantander.com.br/spa-base/landing-page';
     
@@ -28,7 +27,7 @@ export async function loginSantanderPartner(username, password) {
 
     await page.waitForSelector('#action__access-portal');
     await page.click('#action__access-portal');
-    await sleep(2000);
+    await sleep(1000);
 
     const pages = await browser.pages();
     const newPage = pages[pages.length - 1];
@@ -78,4 +77,3 @@ export async function loginSantanderPartner(username, password) {
     throw new Error('Login failed');
   }
 }
-
