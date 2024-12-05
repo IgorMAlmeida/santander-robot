@@ -1,23 +1,18 @@
 import puppeteer from 'puppeteer';
 import { sleep } from "../../utils.js";
+import dotenv from 'dotenv';
+dotenv.config();
 
-export async function loginSantanderPartner(username, password) {
+export async function loginSantanderPartner() {
   try {
-    const url = 'https://www.parceirosantander.com.br/spa-base/landing-page';
+    const url = process.env.SANTANDER_PARTNER_URL;
+    const username = process.env.SANTANDER_PARTNER_LOGIN;
+    const password = process.env.SANTANDER_PARTNER_PASS_LOGIN;
     
-    const browser = await puppeteer.launch({ 
-      headless: false, 
-      args: [
-        '--disable-blink-features=AutomationControlled', 
-        '--no-sandbox', 
-        '--disable-setuid-sandbox',
-        '--disable-gpu',
-        '--window-size=1920x1080',
-        '--disable-infobars',
-        '--disable-extensions',
-        '--disable-software-rasterizer',
-        '--remote-debugging-port=9222',
-      ]
+    const browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      headless: false,
+      ignoreDefaultArgs: ['--disable-extensions', '--enable-automation'],
     });
 
     const page = await browser.newPage();
