@@ -90,7 +90,7 @@ export async function loginSantanderPartner() {
     await newPage.waitForSelector('#kc-form-login-btn');
     await newPage.click('#kc-form-login-btn');
 
-    await sleep(1500);
+    await sleep(2000);
     return { page, browser }; 
   } catch (error) {
     console.error('Erro durante o login:', error);
