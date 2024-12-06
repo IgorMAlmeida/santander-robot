@@ -106,6 +106,7 @@ export async function getProposalData(propostaId) {
         const valorSolicitado = proposalData?.['Valor solicitado'] || 0;
         const dataPrimeiroVencimento = proposalData?.['Data do primeiro vencimento'] || '';
         const cliente = nomeCliente|| '';
+        const convenio = proposalData?.['Convênio'] || ''; 
     
         return {
           nomeCliente: cliente || '',
@@ -121,7 +122,7 @@ export async function getProposalData(propostaId) {
           situacao: status,
           liberacao1: null,
           liberacao2: null,
-          convenio: null,
+          convenio: convenio,
           valorPrincipal: valorTotalPagar,
           valorParcela: valorParcela,
           promotora: null,
