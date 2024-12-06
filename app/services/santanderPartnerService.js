@@ -55,7 +55,7 @@ export async function getProposalData(propostaId) {
         }
       }
     });
-
+    await sleep(1000);
     await page.waitForSelector('.dss-accordion__item--active', { timeout: 300 });
     await page.waitForSelector('div.dss-mb-1 p.dss-body', { visible: true });
 
@@ -68,7 +68,9 @@ export async function getProposalData(propostaId) {
       }
       return null;
     });
+    await page.waitForSelector('.dss-accordion__item--active', { visible: true });
 
+    await sleep(1000);
     const proposalData = await page.evaluate(() => {
       const container = document.querySelector('.dss-accordion__item--active');
       if (!container) return null;
@@ -79,7 +81,6 @@ export async function getProposalData(propostaId) {
       items.forEach(item => {
         const titleElement = item.querySelector('.dss-caption');
         const valueElement = item.querySelector('.dss-body');
-    
         if (titleElement && valueElement) {
           const title = titleElement.textContent.trim();
           const value = valueElement.textContent.trim();
@@ -89,7 +90,6 @@ export async function getProposalData(propostaId) {
     
       return data;
     });
-
 
     const data = await page.evaluate((proposalData, nomeCliente) => {
       const items = document.querySelectorAll('dss-list-item');
@@ -161,7 +161,7 @@ export async function getProposalData(propostaId) {
     await page.waitForSelector('.dss-button--icon-button', { timeout: 1000 });
     await page.click('.dss-button--icon-button');
 
-    // await browser.close();
+    await browser.close();
 
     return data;
   } catch (error) {
