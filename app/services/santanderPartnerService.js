@@ -6,6 +6,10 @@ export async function getProposalData(propostaId) {
     const { page, browser } = await loginSantanderPartner();
 
     await page.goto('https://www.parceirosantander.com.br/spa-base/logged-area/support', { waitUntil: 'networkidle0' });
+    
+    if(page.url() != 'https://www.parceirosantander.com.br/spa-base/logged-area/support'){
+      throw new Error('Login falhou');
+    }
 
     await page.waitForSelector('.dss-dropdown__select', { timeout: 1000 }); 
     await page.click('.dss-dropdown__select'); 
