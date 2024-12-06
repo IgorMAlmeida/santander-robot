@@ -157,6 +157,6 @@ export async function getProposalData(propostaId) {
     return data;
   } catch (error) {
     console.error('Erro no serviço:', error);
-    return { error: 'Erro ao coletar dados da proposta.' };
+    return { error: 'Erro ao coletar dados da proposta.' + error };
   }
 }

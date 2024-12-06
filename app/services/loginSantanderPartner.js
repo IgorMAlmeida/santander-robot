@@ -10,19 +10,41 @@ export async function loginSantanderPartner() {
     const password = process.env.SANTANDER_PARTNER_PASS_LOGIN;
     
     const browser = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      headless: false,
-      ignoreDefaultArgs: ['--disable-extensions', '--enable-automation'],
+      headless: false, 
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-blink-features=AutomationControlled',
+        '--disable-infobars',
+        '--disable-gpu',
+        '--disable-extensions',
+        '--window-size=1920,1080',
+        '--start-maximized',
+        '--remote-debugging-port=9222',
+        '--hide-scrollbars',
+        '--mute-audio',
+      ],
+      ignoreDefaultArgs: ['--enable-automation'],
     });
-
+    
     const page = await browser.newPage();
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
-
+    
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36');
+    
+    await page.evaluateOnNewDocument(() => {
+      delete navigator.__proto__.webdriver;
+      Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
+      Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] });
+    });
+    
+    await page.setExtraHTTPHeaders({
+      'Accept-Language': 'en-US,en;q=0.9',
+    });
     await page.goto(url, { waitUntil: 'networkidle0' });
 
     await page.waitForSelector('#action__access-portal');
     await page.click('#action__access-portal');
-    await sleep(1000);
+    await sleep(2000);
 
     const pages = await browser.pages();
     const newPage = pages[pages.length - 1];
