@@ -1,6 +1,6 @@
 import puppeteer from 'puppeteer';
-import { sleep } from "../../utils.js";
 import dotenv from 'dotenv';
+import { sleep } from '../../utils.js';
 dotenv.config();
 
 export async function loginSantanderPartner() {
@@ -40,6 +40,7 @@ export async function loginSantanderPartner() {
     await page.setExtraHTTPHeaders({
       'Accept-Language': 'en-US,en;q=0.9',
     });
+    
     await page.goto(url, { waitUntil: 'networkidle0' });
 
     await page.waitForSelector('#action__access-portal');
@@ -50,30 +51,34 @@ export async function loginSantanderPartner() {
     const newPage = pages[pages.length - 1];
     await newPage.bringToFront();
     await sleep(1000);
-
+    
+    await newPage.waitForSelector('#form');
     const result = await newPage.evaluate((username, password) => {
       const loginForm = document.getElementById('form');
       if (!loginForm) {
-        return { error: 'Elemento <login-form> não encontrado.' };
+        return { error: 'Elemento <form> não encontrado.' };
       }
-    
+
       const shadowRoot = loginForm.shadowRoot || loginForm.sr;
       if (!shadowRoot) {
         return { success: false, error: 'ShadowRoot não encontrado.' };
       }
-    
+
       const cpfInput = shadowRoot.querySelector('#inputUser');
       const passwordInput = shadowRoot.querySelector('#inputPassword');
       if (!cpfInput || !passwordInput) {
         return { success: false, error: 'Campos CPF ou Senha não encontrados.' };
       }
-    
+
       cpfInput.value = username;
       passwordInput.value = password;
-    
+
       return { success: true, message: 'Campos preenchidos com sucesso.' };
-    }, username, password); 
-    
+    }, username, password);
+
+    if (!result.success) {
+      throw new Error(result.error);
+    }
 
     await newPage.evaluate(() => {
       const loginButton = document.querySelector('#kc-form-login-btn');
@@ -82,15 +87,13 @@ export async function loginSantanderPartner() {
       }
     });
 
-    await sleep(1000);
-
-    await newPage.waitForSelector('#kc-form-login-btn'); 
+    await newPage.waitForSelector('#kc-form-login-btn');
     await newPage.click('#kc-form-login-btn');
-    await sleep(2000);
 
+    await sleep(1500);
     return { page, browser }; 
   } catch (error) {
-    console.error('Error during login:', error);
-    throw new Error('Login failed');
+    console.error('Erro durante o login:', error);
+    throw new Error('Falha no login');
   }
 }

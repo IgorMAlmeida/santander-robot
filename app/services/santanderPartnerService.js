@@ -5,11 +5,20 @@ export async function getProposalData(propostaId) {
   try {
     const { page, browser } = await loginSantanderPartner();
 
+    await page.waitForNavigation({ waitUntil: 'networkidle0' });
+
     await page.goto('https://www.parceirosantander.com.br/spa-base/logged-area/support', { waitUntil: 'networkidle0' });
-    
+   
     if(page.url() != 'https://www.parceirosantander.com.br/spa-base/logged-area/support'){
       throw new Error('Login falhou');
     }
+    await page.waitForSelector('dss-page-loader');
+    await page.evaluate(() => {
+      const loader = document.querySelector('dss-page-loader');
+      if (loader) {
+        loader.style.display = 'none';
+      }
+    });
 
     await page.waitForSelector('.dss-dropdown__select', { timeout: 1000 }); 
     await page.click('.dss-dropdown__select'); 
@@ -25,17 +34,17 @@ export async function getProposalData(propostaId) {
     
     await page.waitForSelector('.dss-button', { timeout: 1000 });
     await page.click('.dss-button');
-    await sleep(1000);
+    await sleep(800);
 
     await page.waitForSelector('dss-list', { timeout: 1000 });
 
     await page.click('dss-list dss-list-item:first-of-type');
-    await sleep(1000);
+    await sleep(300);
 
     await page.waitForFunction(() => {
       const h1 = [...document.querySelectorAll('h1')].find(el => el.textContent.trim() === 'Dados da proposta');
       return h1 !== undefined;
-    }, { timeout: 5000 });
+    }, { timeout: 300 });
     
     await page.evaluate(() => {
       const h1 = [...document.querySelectorAll('h1')].find(el => el.textContent.trim() === 'Dados da proposta');
@@ -47,9 +56,7 @@ export async function getProposalData(propostaId) {
       }
     });
 
-    await page.waitForSelector('.dss-accordion__item--active', { timeout: 1000 });
-    await sleep(2000); 
-
+    await page.waitForSelector('.dss-accordion__item--active', { timeout: 300 });
     await page.waitForSelector('div.dss-mb-1 p.dss-body', { visible: true });
 
     const nomeCliente = await page.evaluate(() => {
@@ -62,7 +69,6 @@ export async function getProposalData(propostaId) {
       return null;
     });
 
-    await sleep(1000); 
     const proposalData = await page.evaluate(() => {
       const container = document.querySelector('.dss-accordion__item--active');
       if (!container) return null;
@@ -84,7 +90,6 @@ export async function getProposalData(propostaId) {
       return data;
     });
 
-    await sleep(2000); 
 
     const data = await page.evaluate((proposalData, nomeCliente) => {
       const items = document.querySelectorAll('dss-list-item');
@@ -151,12 +156,12 @@ export async function getProposalData(propostaId) {
 
     await page.waitForSelector('.container-userinfo', { timeout: 1000 }); 
     await page.click('.container-userinfo');
-    await sleep(1000); 
+    await sleep(500); 
 
     await page.waitForSelector('.dss-button--icon-button', { timeout: 1000 });
     await page.click('.dss-button--icon-button');
 
-    await browser.close();
+    // await browser.close();
 
     return data;
   } catch (error) {
