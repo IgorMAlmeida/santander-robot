@@ -114,10 +114,6 @@ router.post('/santander_proposals', async (req, res) => {
 
         const response = await santanderRobotProposal(req, res);
 
-        // if (response.error) {
-        //     throw new Error(response.mensagem);
-        // }
-
         res.status(200).json(response);
     } catch (err) {
 
