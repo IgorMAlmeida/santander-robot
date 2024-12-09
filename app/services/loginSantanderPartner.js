@@ -10,7 +10,7 @@ export async function loginSantanderPartner() {
     const password = process.env.SANTANDER_PARTNER_PASS_LOGIN;
     
     const browser = await puppeteer.launch({
-      headless: false, 
+      headless: true, 
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -52,7 +52,7 @@ export async function loginSantanderPartner() {
     await newPage.bringToFront();
     await sleep(1000);
     
-    await newPage.waitForSelector('#form');
+
     const result = await newPage.evaluate((username, password) => {
       const loginForm = document.getElementById('form');
       if (!loginForm) {

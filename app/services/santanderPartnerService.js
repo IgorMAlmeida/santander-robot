@@ -1,17 +1,52 @@
 import { sleep } from '../../utils.js';
 import { loginSantanderPartner } from './loginSantanderPartner.js';
+import dotenv from 'dotenv';
+import { deleteSessionByUserId, getSessionData, restoreSession, saveSessionData } from './sessionService.js';
+dotenv.config();
 
 export async function getProposalData(propostaId) {
+
+  const username = process.env.SANTANDER_PARTNER_LOGIN;
   try {
-    const { page, browser } = await loginSantanderPartner();
 
-    await page.waitForNavigation({ waitUntil: 'networkidle0' });
+    const sessionData = await getSessionData(username)
 
-    await page.goto('https://www.parceirosantander.com.br/spa-base/logged-area/support', { waitUntil: 'networkidle0' });
-   
+    let page, browser;
+    if (!sessionData) {
+      const loginResult = await loginSantanderPartner();
+      page = loginResult.page;
+      browser = loginResult.browser;
+
+      await page.waitForNavigation({ waitUntil: 'networkidle0' });
+
+      await page.goto('https://www.parceirosantander.com.br/spa-base/logged-area/support', { waitUntil: 'networkidle0' });
+     
+      if(page.url() != 'https://www.parceirosantander.com.br/spa-base/logged-area/support'){
+        throw new Error('Login falhou');
+      }
+  
+      const cookies = await page.cookies();
+      const localStorageData = await page.evaluate(() => Object.fromEntries(Object.entries(localStorage)));
+      const sessionStorageData = await page.evaluate(() => Object.fromEntries(Object.entries(sessionStorage)));
+  
+      const fileData = {
+        cookies: cookies,
+        localStorage: localStorageData,
+        sessionStorage: sessionStorageData
+      };
+  
+      await saveSessionData(username, fileData)
+
+    } else {
+      ({ page, browser } = await restoreSession(sessionData));
+    }
+
     if(page.url() != 'https://www.parceirosantander.com.br/spa-base/logged-area/support'){
+      await deleteSessionByUserId(username)
+      await browser.close();
       throw new Error('Login falhou');
     }
+
     await page.waitForSelector('dss-page-loader');
     await page.evaluate(() => {
       const loader = document.querySelector('dss-page-loader');
@@ -153,14 +188,13 @@ export async function getProposalData(propostaId) {
     
       return extractedData;
     }, proposalData, nomeCliente);
-    
 
-    await page.waitForSelector('.container-userinfo', { timeout: 1000 }); 
-    await page.click('.container-userinfo');
-    await sleep(500); 
+    // await page.waitForSelector('.container-userinfo', { timeout: 1000 }); 
+    // await page.click('.container-userinfo');
+    // await sleep(500); 
 
-    await page.waitForSelector('.dss-button--icon-button', { timeout: 1000 });
-    await page.click('.dss-button--icon-button');
+    // await page.waitForSelector('.dss-button--icon-button', { timeout: 1000 });
+    // await page.click('.dss-button--icon-button');
 
     await browser.close();
 
