@@ -36,7 +36,9 @@ export async function getProposalData(propostaId) {
     await page.click('.dss-button');
     await sleep(800);
 
-    await page.waitForSelector('dss-list', { timeout: 1000 });
+    await page.waitForSelector('dss-list', { timeout: 1000 }).catch(e => {
+      browser.close();
+    });
 
     await page.click('dss-list dss-list-item:first-of-type');
     await sleep(300);
@@ -68,9 +70,9 @@ export async function getProposalData(propostaId) {
       }
       return null;
     });
-    await page.waitForSelector('.dss-accordion__item--active', { visible: true });
+    await page.waitForSelector('.dss-accordion__item--active', { timeout: 5000, visible: true });
 
-    await sleep(1000);
+    await sleep(2000);
     const proposalData = await page.evaluate(() => {
       const container = document.querySelector('.dss-accordion__item--active');
       if (!container) return null;
@@ -89,6 +91,10 @@ export async function getProposalData(propostaId) {
       });
     
       return data;
+    }).catch(error => {
+      console.error('Error during proposal data extraction:', error);
+      browser.close();
+      throw new Error('Login falhou');
     });
 
     const data = await page.evaluate((proposalData, nomeCliente) => {
