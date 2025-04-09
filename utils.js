@@ -4,11 +4,15 @@ export async function getByXpath (page, xpath) {
     return element;
 };
 
-export async function clickElementByXpath (page, xpath) {
+export async function clickElementByXpath(page, xpath, timeout = 5000, waitUntil = 'domcontentloaded') {
 
-    const button = await page.waitForSelector(`::-p-xpath(${xpath})`);
+    const button = await page.waitForSelector(`::-p-xpath(${xpath})`, { timeout, waitUntil });
     await button.click();
 
+};
+
+export async function clickElementByXpathWithoutWait(page, xpath) {
+    await page.click(`::-p-xpath(${xpath})`);
 };
 
 export async function elementHover (page, xpath) {
