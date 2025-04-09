@@ -1,5 +1,8 @@
 import fs from 'fs';
 import ac from "@antiadmin/anticaptchaofficial";
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 export const solveImageCaptcha = async (filePath) => {
     try {

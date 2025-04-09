@@ -1,12 +1,13 @@
-import { clickElementByXpath } from "../../../utils.js";
+import { clickElementByXpath } from "../../../../utils.js";
 import dotenv from 'dotenv';
 dotenv.config();
 
-export async function loginSRCC(page) {
+export async function login(page, credentials) {
   try {
-    const url = process.env.C6_SRCC_URL;
-    const username = process.env.C6_SRCC_LOGIN;
-    const password = process.env.C6_SRCC_PASS_LOGIN;
+    const url = process.env.C6_APROVACAO_URL;
+
+    const username = credentials.username;
+    const password = credentials.password;
     
     await page.goto(url, { waitUntil: 'domcontentloaded' });
 
@@ -27,7 +28,7 @@ export async function loginSRCC(page) {
   
     await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
 
-    await page.goto(`https://c6.c6consig.com.br/WebAutorizador/MenuWeb/Esteira/AprovacaoConsulta/UI.AprovacaoConsultaCanInt.aspx?FISession=${FISession}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`https://c6.c6consig.com.br/WebAutorizador/MenuWeb/Esteira/AprovacaoConsulta/UI.AprovacaoConsultaAnd.aspx?FISession=${FISession}`, { waitUntil: 'domcontentloaded' });
 
     return {
       status: true,

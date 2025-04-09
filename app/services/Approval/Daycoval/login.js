@@ -1,23 +1,26 @@
-import { clickElementByXpath } from "../../../utils.js";
+import { clickElementByXpath } from "../../../../utils.js";
 import dotenv from 'dotenv';
+import { solveCaptcha } from "./solveCaptcha.js";
 dotenv.config();
 
-export async function loginSRCC(page) {
+export async function login(page, credentials) {
   try {
-    const url = process.env.C6_SRCC_URL;
-    const username = process.env.C6_SRCC_LOGIN;
-    const password = process.env.C6_SRCC_PASS_LOGIN;
+    const url = process.env.DAYCOVAL_APROVACAO_URL;
+    
+    const username = credentials.username;
+    const password = credentials.password;
     
     await page.goto(url, { waitUntil: 'domcontentloaded' });
 
-    const FISession = await page.evaluate(() => {
-      const url = new URL(window.location.href);
-      return url.searchParams.get('FISession');
-    });
+    const captchaText = await solveCaptcha(page);
+    await page.type(
+      '::-p-xpath(//*[@id="Captcha_txtCaptcha_CAMPO"])',
+      captchaText
+    );
 
     await page.type('::-p-xpath(//*[@id="EUsuario_CAMPO"])', username);
-
     await page.type('::-p-xpath(//*[@id="ESenha_CAMPO"])', password);
+
     await clickElementByXpath(page,'//*[@id="lnkEntrar"]');
 
     page.on('dialog', async dialog => {
@@ -27,12 +30,14 @@ export async function loginSRCC(page) {
   
     await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
 
-    await page.goto(`https://c6.c6consig.com.br/WebAutorizador/MenuWeb/Esteira/AprovacaoConsulta/UI.AprovacaoConsultaCanInt.aspx?FISession=${FISession}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(
+      `https://consignado.daycoval.com.br/Autorizador/MenuWeb/Esteira/AprovacaoConsulta/UI.AprovacaoConsultaAnd.aspx`,
+      { waitUntil: "domcontentloaded" }
+    );
 
     return {
       status: true,
-      data: FISession
-    }; 
+    };
   } catch (error) {
     console.error('Error during login:', error);
     return {

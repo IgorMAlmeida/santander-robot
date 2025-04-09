@@ -1,14 +1,8 @@
-import puppeteer from 'puppeteer-extra';
-import { executablePath } from 'puppeteer';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import AdblockerPlugin from 'puppeteer-extra-plugin-adblocker';
+import puppeteer from 'puppeteer';
 
 import { consultSRCC } from '../services/C6/consultSRCC.js';
 import { loginSRCC } from '../services/C6/loginSRCC.js';
 import fs from 'fs';
-
-puppeteer.use(StealthPlugin());
-puppeteer.use(AdblockerPlugin({ blockTrackers: true }));
 
 export async function ConsultSRCCByArray(req, res) {
     const proposals = req?.body?.proposals;
@@ -29,7 +23,7 @@ export async function ConsultSRCCByArray(req, res) {
 };
 
 async function processData(proposals) {
-    let page = await initialize();
+    let {page, browser} = await initialize();
     let FISession = null;
 
     let result = [];
@@ -60,13 +54,17 @@ async function processData(proposals) {
                 'Erro': error.message,
             });
 
-            await page.close();
-            page = await initialize();
+            await browser.close();
+            let recreate = await initialize();
+            page = recreate.page;
+            browser = recreate.browser;
             FISession = null;
         }
 
         console.log(`Processed ${proposals.indexOf(proposal) + 1} of ${proposals.length}`);
     };
+
+    await browser.close();
 
     return result;
 }
@@ -76,11 +74,19 @@ async function initialize() {
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
         headless: false,
         ignoreDefaultArgs: ['--disable-extensions', '--enable-automation'],
-        executablePath: executablePath(),
-        protocolTimeout: 10000
+        protocolTimeout: 15000
     });
 
     const page = await browser.newPage();
 
-    return page;
+    await page.setRequestInterception(true);
+    page.on('request', req => {
+        if (req.resourceType() === 'image') {
+            req.abort();
+        } else {
+            req.continue();
+        }
+    });
+
+    return {page, browser};
 }

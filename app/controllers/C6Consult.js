@@ -1,26 +1,27 @@
-import puppeteer from 'puppeteer-extra';
-import { executablePath } from 'puppeteer';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import AdblockerPlugin from 'puppeteer-extra-plugin-adblocker';
+import puppeteer from 'puppeteer';
 
 import { loginSRCC } from '../services/C6/loginSRCC.js';
 import { consultSRCC } from '../services/C6/consultSRCC.js';
-
-puppeteer.use(StealthPlugin());
-puppeteer.use(AdblockerPlugin({ blockTrackers: true }));
 
 export async function C6Consult(proposal) {
   const browser = await puppeteer.launch({
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
     headless: false,
     ignoreDefaultArgs: ['--disable-extensions', '--enable-automation'],
-    executablePath: executablePath()
   });
 
   const page = await browser.newPage();
+  await page.setRequestInterception(true);
+
+  page.on('request', req => {
+    if (req.resourceType() === 'image') {
+      req.abort();
+    } else {
+      req.continue();
+    }
+  });
 
   try {
-    console.log('Iniciando Login...');
     const loginData = await loginSRCC(page);
 
     if (!loginData.status) {
