@@ -19,14 +19,8 @@ export async function DaycovalApproval(req, res) {
       throw new Error("Erro ao processar a proposta");
     }
 
-    return res.status(200).json({
-      status: true,
-      data: result
-    });
+    return ControllerResponse.success(res, result);
   } catch (error) {
-    return res.status(400).json({
-      status: false,
-      error: error.message
-    });
+    return ControllerResponse.error(res, error);
   }
 };
