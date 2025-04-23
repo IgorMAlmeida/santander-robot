@@ -9,7 +9,7 @@ export async function login(page, credentials) {
     const username = credentials.username;
     const password = credentials.password;
     
-    await page.goto(url, { waitUntil: 'domcontentloaded' });
+    await page.goto(url, { waitUntil: "networkidle0" });
 
     const FISession = await page.evaluate(() => {
       const url = new URL(window.location.href);
@@ -26,9 +26,9 @@ export async function login(page, credentials) {
       await dialog.accept();
     });
   
-    await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
+    await page.waitForNavigation({ waitUntil: "networkidle0" });
 
-    await page.goto(`https://c6.c6consig.com.br/WebAutorizador/MenuWeb/Esteira/AprovacaoConsulta/UI.AprovacaoConsultaAnd.aspx?FISession=${FISession}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`https://c6.c6consig.com.br/WebAutorizador/MenuWeb/Esteira/AprovacaoConsulta/UI.AprovacaoConsultaAnd.aspx?FISession=${FISession}`, { waitUntil: "networkidle0" });
 
     return {
       status: true,

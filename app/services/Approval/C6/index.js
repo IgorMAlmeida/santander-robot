@@ -40,7 +40,7 @@ export async function approval(proposals, credentials) {
       await page.goto(
         `https://c6.c6consig.com.br/WebAutorizador/MenuWeb/Esteira/AprovacaoConsulta/UI.AprovacaoConsultaAnd.aspx?FISession=${FISession}`,
         {
-          waitUntil: "domcontentloaded",
+          waitUntil: "networkidle0",
           timeout: 30000,
         }
       );
@@ -60,7 +60,7 @@ export async function approval(proposals, credentials) {
         await page.goto(
           `https://c6.c6consig.com.br/WebAutorizador/MenuWeb/Esteira/AprovacaoConsulta/UI.AprovacaoConsultaAnd.aspx?FISession=${FISession}`,
           {
-            waitUntil: "domcontentloaded",
+            waitUntil: "networkidle0",
             timeout: 30000,
           }
         );
