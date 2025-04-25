@@ -25,6 +25,8 @@ RUN apt-get update && apt-get install -y \
 COPY package.json /usr/src/app/package.json
 
 RUN npm install
+
+RUN npm install -g nodemon
     
 RUN npx puppeteer install --chrome
 
