@@ -1,6 +1,8 @@
-import { clickElementByXpath, sleep } from "../../../../utils.js";
+import { clickElementByXpath, getElementTextByXpath, sleep } from "../../../../utils.js";
 import verifySRCC from "./verifySRCC.js";
 import APIService from "../APIService.js";
+import justNumbers from "../../../utils/justNumbers.js";
+import search from "./search.js";
 
 /**
  * consult
@@ -19,33 +21,35 @@ import APIService from "../APIService.js";
  */
 export async function consult(page, proposal) {
   try {
-    await page.goto(
-      `https://desenv.facta.com.br/sistemaNovo/andamentoPropostas.php`,
-      { waitUntil: "domcontentloaded" }
-    );
-    
-    await page.type('::-p-xpath(//*[@id="codigoAf"])', proposal.proposal);
-    await clickElementByXpath(page, '//*[@id="aguardandoAprovacaoEsteira"]');
-    await clickElementByXpath(page, '//*[@id="pesquisar"]');
+    const codeAgent = await getElementTextByXpath(page, '//*[@id="corpo"]/header/div/div/div/div[2]/span');
+    const codeAgentText = justNumbers(codeAgent);
 
-    await sleep(500);
+    if (!codeAgentText) {
+      throw new Error("Código do agente não encontrado");
+    }
 
-    await verifySRCC(page);
+    const isValidSRCC = await verifySRCC(page, proposal.proposal, codeAgentText);
+
+    if (!isValidSRCC) {
+      throw new Error("Proposta possui registro de SRCC");
+    }
+
+    await search(page, proposal.proposal);
 
     await clickElementByXpath(
       page,
       '//*[@id="tblListaProposta"]/tbody/tr/td[17]/button[1]',
-      2000
+      5000
     );
 
     await sleep(1000);
-    for (let i = 0; i < 10; i++) {
-      await page.keyboard.press("Tab");
-    }
 
-    await page.keyboard.press("Enter");
-    await sleep(500);
-    await page.keyboard.press("Enter");
+    await clickElementByXpath(
+      page,
+      '//*[@id="modalAprovacaoEsteira"]/div/div/div[2]/div/div[3]/div/button[1]'
+    );
+
+    await sleep(1000);
 
     await APIService.put(proposal.postBack.url, proposal.postBack.headers, { status: "Aprovada" });
 

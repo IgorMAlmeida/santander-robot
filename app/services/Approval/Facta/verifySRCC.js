@@ -1,29 +1,30 @@
-import { clickElementByXpath, sleep } from "../../../../utils.js";
+import { clickElementByXpath, getElementTextByXpath, sleep } from "../../../../utils.js";
 
-export default async function verifySRCC(page) {
-  const buttonIsDisabled = await page.evaluate(
-    () => {
-      const button = document.evaluate('//*[@id="tblListaProposta"]/tbody/tr/td[17]/button[1]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-      return button.disabled;
-    },
-    page
-  );
+export default async function verifySRCC(page, proposal, codeAgent) {
+  try {
+    await page.goto(
+      `https://desenv.facta.com.br/sistemaNovo/propostaAnalise.php?codigo=${proposal}&corretor=${codeAgent}`
+    );
 
-  if (buttonIsDisabled) {
-    await clickElementByXpath(page, '//*[@id="btnSRCC"]');
+    await clickElementByXpath(page, '//*[@id="btnCarregaHistoricoSRCC"]');
 
     await sleep(1000);
 
-    for (let i = 0; i < 6; i++) {
-      await page.keyboard.press("Tab");
+    const divText = await getElementTextByXpath(page, '//*[@id="divHistoricoSRCC"]');
+
+    if (divText === "Não foram encontrados resultados para sua pesquisa.") {
+      return true;
     }
 
-    await page.keyboard.press("Enter");
+    const srccTd = await getElementTextByXpath(page, '//*[@id="divHistoricoSRCC"]/table/tbody/tr/td[3]');
 
-    await page.waitForNavigation({ waitUntil: "domcontentloaded" });
+    if (!srccTd || srccTd === 'N') {
+      return true;
+    }
 
-    await sleep(10000);
+    return false;
+  } catch (err) {
+    console.log(err)
+    return false
   }
-
-  return true;
 }
