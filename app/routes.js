@@ -9,6 +9,8 @@ import { C6Approval } from './controllers/Approval/C6.js';
 import { DaycovalApproval } from './controllers/Approval/Daycoval.js';
 import { FactaApproval } from './controllers/Approval/Facta.js';
 import { OLEApproval } from './controllers/Approval/OLE.js';
+import { ItauFinancial } from './controllers/Financial/Itaú.js';
+
 const upload = multer({ dest: 'uploads/' });
 const router = express.Router();
 router.use(express.json());
@@ -130,5 +132,7 @@ router.post("/api/consult/aprovacao/c6/proposal", C6Approval);
 router.post("/api/consult/aprovacao/daycoval/proposal", DaycovalApproval);
 router.post("/api/consult/aprovacao/facta/proposal", FactaApproval);
 router.post("/api/consult/aprovacao/ole/proposal", OLEApproval);
+
+router.post("/api/financiamento/itau", ItauFinancial);
 
 export default router;
