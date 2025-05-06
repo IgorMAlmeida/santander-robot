@@ -1,75 +1,73 @@
 import { loginOle } from '../services/loginOle.js';
 import { getConsultProposalScreen } from '../services/getConsultProposalScreen.js';
-import puppeteer from 'puppeteer-extra';
-import { executablePath } from 'puppeteer';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import AdblockerPlugin from 'puppeteer-extra-plugin-adblocker';
+import ApiService from '../services/api.service.js';
+import { initialize } from '../services/Approval/InitializePuppeteer.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
-puppeteer.use(StealthPlugin());
-puppeteer.use(AdblockerPlugin({ blockTrackers: true }));
-
-
-export async function ProposalConsult(req, res) {
-  let result = [];
-
-  const browser = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    headless: false,
-    ignoreDefaultArgs: ['--disable-extensions', '--enable-automation'],
-    executablePath: executablePath()
-  });
-
-  const page = await browser.newPage();
-
+export async function ProposalConsult(fileId, proposals) {
+  const { page, browser } = await initialize();
+  
   try {
     const url = process.env.OLE_URL_BASE;
     const username = process.env.OLE_LOGIN;
     const password = process.env.PASS_LOGIN;
-    const proposals = req?.body?.proposals; 
     
-    for(const proposal of proposals) {
-      await loginOle(page, url, username, password);
+    const stats = {
+      processed: 0,
+      failed: 0,
+      total: proposals.length
+    };
 
-      const data = await getConsultProposalScreen(page, proposal.cpf, proposal.codProposal.toString(), proposal.date);
-      const hasValue = data.status;
-      
-      if (!hasValue) {
-        result.push({
-          proposal: proposal.codProposal,
-          status: false,
-          data: "Erro na consulta"
-        });
+    await loginOle(page, url, username, password);
 
-        continue;
-      }
-
-      result.push({
-        proposal: proposal.codProposal,
-        status: true,
-        data: data.data
-      });
-
-      console.log(`The process was completed successfully for proposal: ${proposal.codProposal}`);
-      console.log(`Processed ${proposals.indexOf(proposal) + 1} of ${proposals.length} proposals`);
+    for (const proposal of proposals) {
+      await processProposal(page, proposal, stats, fileId);
     }
 
     await browser.close();
-
+    
     return {
       status: true,
       response: "The process was completed successfully",
-      data: result
+      data: {
+        processed: stats.processed,
+        failed: stats.failed
+      }
     };
-  } catch (err) {
-    console.log(err);
+  } catch (error) {
     await browser.close();
-
+    
     return {
       status: false,
-      response: err.message,
+      response: error.message,
       data: null
     };
   }
+}
+
+async function processProposal(page, proposal, stats, fileId) {
+  const { cpf, codProposal, date } = proposal;
+  const proposalId = codProposal.toString();
+  
+  const consultResult = await getConsultProposalScreen(page, cpf, proposalId, date);
+  const isSuccessful = consultResult.status;
+  
+  if (!isSuccessful) {
+    stats.failed++;
+    await updateProposalStatus(fileId, proposalId, "N/A", stats);
+    return;
+  }
+  
+  stats.processed++;
+  await updateProposalStatus(fileId, proposalId, consultResult.data, stats);
+}
+
+async function updateProposalStatus(fileId, proposalId, userBank, stats) {
+  await ApiService.post(`/proposals/ole/user_bank/update/${fileId}`, {
+    processed: stats.processed,
+    failed: stats.failed,
+    proposal: proposalId,
+    user_bank: userBank
+  });
 }

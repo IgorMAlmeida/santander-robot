@@ -39,10 +39,10 @@ router.post('/api/consult/proposal', async (req, res) => {
             throw new Error('Nenhuma proposta informada');
         }
 
-        const response = await ProposalConsult(req, res);
+        const response = await ProposalConsult(req?.body?.proposals);
 
-        if (response.error) {
-            throw new Error(response.mensagem);
+        if (!response.status) {
+            throw new Error(response.response);
         }
 
         res.status(200).json(response);

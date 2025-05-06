@@ -25,14 +25,7 @@ export async function loginOle(page, url, username, password) {
    
     await page.waitForNavigation({ waitUntil: 'domcontentloaded' })
     console.log('Logado');
-
-    await page.goto("https://ola.oleconsignado.com.br/ConsultaDeProposta/Index", { waitUntil: 'domcontentloaded' });
-    console.log('Iniciando consulta');
     
-    const error500 = await checkElementAndText(page, '/html/body/div/div/div/h1');
-    if(error500.status) {
-      throw new Error('Error 500 OLE SITE');
-    }
     return true; 
   } catch (error) {
     console.error('Error during login:', error);

@@ -1,4 +1,4 @@
-import { clickElementByXpath, sleep } from "../../utils.js";
+import { checkElementAndText, clickElementByXpath, sleep } from "../../utils.js";
 import { getProposalByCod } from "./getProposalByCod.js";
 import { getProposalByCpf } from "./getProposalByCpf.js";
 import { loginOle } from "./loginOle.js";
@@ -9,6 +9,19 @@ export async function getConsultProposalScreen(page, cpf, codProposal, date) {
   let hasReturn = true;
 
   try {
+    await page.goto(
+      "https://ola.oleconsignado.com.br/ConsultaDeProposta/Index",
+      { waitUntil: "domcontentloaded" }
+    );
+
+    const error500 = await checkElementAndText(
+      page,
+      "/html/body/div/div/div/h1"
+    );
+    if (error500.status) {
+      throw new Error("Error 500 OLE SITE");
+    }
+
     let data = "";
     await sleep(1500);
     const responseCod = await getProposalByCod(page, codProposal);
