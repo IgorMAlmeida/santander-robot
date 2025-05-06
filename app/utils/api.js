@@ -6,6 +6,6 @@ export const api = axios.create({
   baseURL: process.env.API_URL,
   headers: {
     "Content-Type": "application/json",
-    ROBOT_KEY: `${process.env.ROBOT_KEY}`,
+    "ROBOT-KEY": `${process.env.ROBOT_KEY}`,
   }
 });
