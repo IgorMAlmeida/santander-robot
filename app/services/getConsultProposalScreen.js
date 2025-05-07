@@ -61,7 +61,7 @@ export async function getConsultProposalScreen(page, cpf, codProposal, date) {
       }
     }
 
-    if(!data) {
+    if(!data || typeof data !== 'string') {
       throw new Error("Proposta não encontrada")
     }
 
