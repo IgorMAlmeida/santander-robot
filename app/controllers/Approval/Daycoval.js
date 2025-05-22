@@ -1,4 +1,5 @@
 import { approval } from '../../services/Approval/Daycoval/index.js';
+import ControllerResponse from "../../utils/ControllerResponse.js";
 
 export async function DaycovalApproval(req, res) {
   try {
