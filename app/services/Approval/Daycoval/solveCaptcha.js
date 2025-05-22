@@ -1,10 +1,15 @@
-import { solveImageCaptcha } from "../../Anticaptcha/Anticaptcha.js";
 import path from "path";
-  import fs from "fs";
+import fs from "fs";
+import { getByXpath } from "../../../../utils.js";
+import { solveImageCaptcha } from "../../Anticaptcha/Anticaptcha.js";
 
 export const solveCaptcha = async (page) => {
     try {
-        const captchaImageElement = await page.$('::-p-xpath(//*[@id="form1"]/img)');
+        await page.waitForSelector('::-p-xpath(//*[@id="form1"]/img)');
+        const captchaImageElement = await getByXpath(
+          page,
+          '//*[@id="form1"]/img'
+        );
         
         if (!captchaImageElement) {
             throw new Error('Captcha image element not found');
@@ -27,7 +32,7 @@ export const solveCaptcha = async (page) => {
         if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
         }
-        
+
         return text;
     } catch (error) {
         console.error('Error solving captcha:', error);

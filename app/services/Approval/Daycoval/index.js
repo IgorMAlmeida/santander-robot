@@ -2,23 +2,6 @@ import { initialize } from "../InitializePuppeteer.js";
 import { login } from "./login.js";
 import { consult } from "./consult.js";
 
-/**
- * approval
- * @description Processa as propostas de aprovação da Daycoval
- * @param {{
- *  proposal: string,
- *  postBack: {
- *    url: string,
- *    headers: Object,
- *  }
- * }} proposals - Propostas de aprovação
- * @param {{
- *  username: string,
- *  password: string,
- * }} credentials - Credenciais de login
- * @returns {Promise<Object>} Resultado da aprovação
- */
-
 export async function approval(proposals, credentials) {
   let { page, browser } = await initialize();
 
