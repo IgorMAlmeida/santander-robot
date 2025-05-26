@@ -16,3 +16,9 @@ export const consultOleUserBank = async () => {
         console.error(error.message);
     }
 };
+
+consultOleUserBank().then(() => {
+    console.log("Consultou o usuário do OLE");
+}).catch((error) => {
+    console.error(error.message);
+});
