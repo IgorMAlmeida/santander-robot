@@ -9,7 +9,7 @@ puppeteer.use(AdblockerPlugin({ blockTrackers: true }));
 export async function initialize() {
     const browser = await puppeteer.launch({
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      headless: "new",
+      headless: true,
       ignoreDefaultArgs: ["--disable-extensions", "--enable-automation"],
       executablePath: executablePath(),
     });
