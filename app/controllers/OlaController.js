@@ -1,7 +1,7 @@
 import { loginOle } from '../services/loginOle.js';
 import { getConsultProposalScreen } from '../services/getConsultProposalScreen.js';
 import ApiService from '../services/api.service.js';
-import { initialize } from '../services/Approval/InitializePuppeteer.js';
+import { initialize } from '../services/OLE/InitializePuppeteer.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
