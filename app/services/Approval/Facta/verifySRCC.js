@@ -10,6 +10,8 @@ export default async function verifySRCC(page, proposal, codeAgent) {
       `https://desenv.facta.com.br/sistemaNovo/propostaAnalise.php?codigo=${proposal}&corretor=${codeAgent}`
     );
 
+    await sleep(2000);
+
     logger.debug("Clicking SRCC history button");
     await clickElementByXpath(page, '//*[@id="btnCarregaHistoricoSRCC"]');
 
