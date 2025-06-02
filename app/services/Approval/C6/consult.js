@@ -18,77 +18,125 @@ import logger from "../../../utils/logger.js";
  * @returns {Promise<Object>} Resultado da aprovação
  */
 export async function consult(page, proposal) {
-  logger.info(`Starting C6 approval consultation`, { proposalId: proposal.proposal });
+  logger.logMethodEntry('C6.consult', { 
+    proposalId: proposal.proposal,
+    postBackUrl: proposal.postBack.url
+  });
   
   try {
-    logger.debug(`Entering proposal ID in search field`, { proposalId: proposal.proposal });
+    logger.debug(`Digitando ID da proposta no campo de pesquisa`, { 
+      proposalId: proposal.proposal,
+      selector: '::-p-xpath(//*[@id="ctl00_Cph_AprCons_txtPesquisa_CAMPO"])'
+    });
+    
     await page.type(
       '::-p-xpath(//*[@id="ctl00_Cph_AprCons_txtPesquisa_CAMPO"])',
       proposal.proposal
     );
     
-    logger.debug(`Clicking search button`);
+    logger.debug(`Clicando no botão de pesquisar`, {
+      xpath: '//*[@id="btnPesquisar_txt"]'
+    });
     await clickElementByXpath(page, '//*[@id="btnPesquisar_txt"]');
 
     await sleep(1000);
     
-    logger.debug(`Checking proposal status`);
+    logger.debug(`Verificando status da proposta`, {
+      xpath: '//*[@id="ctl00_Cph_AprCons_grdConsulta_ctl02_ctl02"]'
+    });
     const status = await getElementTextByXpath(
       page,
       '//*[@id="ctl00_Cph_AprCons_grdConsulta_ctl02_ctl02"]'
     );
     
-    logger.info(`Current proposal status`, { status });
+    logger.info(`Status atual da proposta`, { 
+      proposalId: proposal.proposal,
+      status,
+      expectedStatus: "ANALISE CORBAN"
+    });
+    
     if (status !== "ANALISE CORBAN") {
-      logger.warn(`Proposal is not in CORBAN analysis status`, { status, proposalId: proposal.proposal });
+      logger.warn(`Proposta não está no status esperado de análise CORBAN`, { 
+        proposalId: proposal.proposal, 
+        currentStatus: status,
+        expectedStatus: "ANALISE CORBAN"
+      });
       throw new Error("Proposta não está na analise da CORBAN");
     }
 
-    logger.debug(`Navigating through form with Tab key`);
+    logger.debug(`Navegando pelo formulário usando Tab`, {
+      proposalId: proposal.proposal,
+      tabCount: 25
+    });
     for (let i = 0; i < 25; i++) {
       await page.keyboard.press("Tab");
     }
 
-    logger.debug(`Pressing Enter to select proposal`);
+    logger.debug(`Pressionando Enter para selecionar a proposta`);
     await page.keyboard.press("Enter");
 
-    logger.debug(`Clicking on approval tab`);
+    logger.debug(`Clicando na aba de aprovação`, {
+      xpath: '//*[@id="__tab_ctl00_Cph_TBCP_2"]'
+    });
     await clickElementByXpath(page, '//*[@id="__tab_ctl00_Cph_TBCP_2"]');
     await sleep(500);
 
-    logger.debug(`Clicking on approval button`);
+    logger.debug(`Clicando no botão de aprovação`, {
+      xpath: '//*[@id="BBApr_txt"]'
+    });
     await clickElementByXpath(page, '//*[@id="BBApr_txt"]');
 
-    logger.debug(`Waiting for approval confirmation`);
+    logger.debug(`Aguardando confirmação de aprovação`, {
+      selector: '::-p-xpath(//*[@id="ctl00_Cph_AprCons_l_Titulo"])'
+    });
     await page.waitForSelector('::-p-xpath(//*[@id="ctl00_Cph_AprCons_l_Titulo"])');
 
-    logger.info(`Sending approval status to API`, { 
+    logger.info(`Enviando status de aprovação para API`, { 
       proposalId: proposal.proposal, 
       status: "Aprovada",
-      url: proposal.postBack.url 
+      url: proposal.postBack.url,
+      headers: Object.keys(proposal.postBack.headers).join(', ')
     });
     
-    await APIService.put(proposal.postBack.url, proposal.postBack.headers, { status: "Aprovada" });
+    const apiResponse = await APIService.put(proposal.postBack.url, proposal.postBack.headers, { status: "Aprovada" });
+    
+    logger.info(`Resposta da API recebida`, {
+      proposalId: proposal.proposal,
+      responseData: apiResponse
+    });
 
-    logger.info(`Proposal successfully approved`, { proposalId: proposal.proposal });
+    logger.logMethodExit('C6.consult', { 
+      status: true, 
+      data: 'Proposta aprovada' 
+    }, {
+      proposalId: proposal.proposal
+    });
+    
     return {
       status: true,
       data: `Proposta aprovada`,
     };
   } catch (error) {
-    logger.error(`Error during C6 approval process`, { 
+    logger.logError(`Erro durante processo de aprovação C6`, error, { 
       proposalId: proposal.proposal,
-      error: error.message,
-      stack: error.stack
+      url: proposal.postBack.url
     });
 
-    logger.info(`Sending error status to API`, { 
-      proposalId: proposal.proposal,
-      status: "Erro",
-      url: proposal.postBack.url 
-    });
-    
-    await APIService.put(proposal.postBack.url, proposal.postBack.headers, { status: "Erro" });
+    try {
+      logger.info(`Enviando status de erro para API`, { 
+        proposalId: proposal.proposal,
+        status: "Erro",
+        url: proposal.postBack.url,
+        errorMessage: error.message
+      });
+      
+      await APIService.put(proposal.postBack.url, proposal.postBack.headers, { status: "Erro" });
+    } catch (apiError) {
+      logger.logError(`Erro ao enviar status de erro para API`, apiError, {
+        proposalId: proposal.proposal,
+        url: proposal.postBack.url
+      });
+    }
 
     return { 
       status: false, 

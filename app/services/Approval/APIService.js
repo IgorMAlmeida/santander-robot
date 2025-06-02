@@ -2,83 +2,140 @@ import logger from "../../utils/logger.js";
 
 class APIService {
     async get(url, headers) {
-        logger.debug("Making GET request", { 
+        logger.logMethodEntry('APIService.get', { 
             url,
-            headers: JSON.stringify(headers)
+            headersKeys: Object.keys(headers)
         });
         
         try {
-            const response = await fetch(url, { method: 'GET', headers });
-            const result = await response.json();
+            logger.debug("Iniciando requisição GET", { 
+                url,
+                headers: Object.keys(headers).join(', ')
+            });
             
-            logger.debug("GET request successful", {
+            const response = await fetch(url, { method: 'GET', headers });
+            
+            logger.debug("Resposta da requisição GET recebida", {
                 url,
                 status: response.status,
-                statusText: response.statusText
+                statusText: response.statusText,
+                responseSize: response.headers.get('content-length') || 'desconhecido'
+            });
+            
+            const result = await response.json();
+            
+            logger.logMethodExit('APIService.get', result, {
+                url,
+                status: response.status
             });
             
             return result;
         } catch (error) {
-            logger.error("GET request failed", {
+            logger.logError("Falha na requisição GET", error, {
                 url,
-                error: error.message,
-                stack: error.stack
+                headers: Object.keys(headers).join(', ')
             });
             throw error;
         }
     }
 
     async post(url, headers, data = {}) {
-        logger.debug("Making POST request", { 
+        logger.logMethodEntry('APIService.post', { 
             url,
-            headers: JSON.stringify(headers),
-            data: JSON.stringify(data)
+            headersKeys: Object.keys(headers),
+            dataKeys: Object.keys(data)
         });
         
         try {
-            const response = await fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(data) });
-            const result = await response.json();
+            logger.debug("Iniciando requisição POST", { 
+                url,
+                headers: Object.keys(headers).join(', '),
+                dataKeys: Object.keys(data).join(', ')
+            });
             
-            logger.debug("POST request successful", {
+            const bodyContent = JSON.stringify(data);
+            logger.debug("Corpo da requisição POST preparado", { 
+                bodySize: bodyContent.length,
+                contentType: headers['Content-Type'] || headers['content-type'] || 'application/json'
+            });
+            
+            const response = await fetch(url, { 
+                method: 'POST', 
+                headers: headers, 
+                body: bodyContent 
+            });
+            
+            logger.debug("Resposta da requisição POST recebida", {
                 url,
                 status: response.status,
-                statusText: response.statusText
+                statusText: response.statusText,
+                responseSize: response.headers.get('content-length') || 'desconhecido'
+            });
+            
+            const result = await response.json();
+            
+            logger.logMethodExit('APIService.post', result, {
+                url,
+                status: response.status
             });
             
             return result;
         } catch (error) {
-            logger.error("POST request failed", {
+            logger.logError("Falha na requisição POST", error, {
                 url,
-                error: error.message,
-                stack: error.stack
+                headers: Object.keys(headers).join(', '),
+                dataKeys: Object.keys(data).join(', ')
             });
             throw error;
         }
     }
 
     async put(url, headers, data = {}) {
-        logger.debug("Making PUT request", { 
+        logger.logMethodEntry('APIService.put', { 
             url,
-            headers: JSON.stringify(headers),
-            data: JSON.stringify(data)
+            headersKeys: Object.keys(headers),
+            dataKeys: Object.keys(data)
         });
         
         try {
-            const response = await fetch(url, { method: 'PUT', headers: headers, body: JSON.stringify(data) });
-            const result = await response.json();
+            logger.debug("Iniciando requisição PUT", { 
+                url,
+                headers: Object.keys(headers).join(', '),
+                dataKeys: Object.keys(data).join(', ')
+            });
             
-            logger.debug("PUT request successful", {
+            const bodyContent = JSON.stringify(data);
+            logger.debug("Corpo da requisição PUT preparado", { 
+                bodySize: bodyContent.length,
+                contentType: headers['Content-Type'] || headers['content-type'] || 'application/json'
+            });
+            
+            const response = await fetch(url, { 
+                method: 'PUT', 
+                headers: headers, 
+                body: bodyContent 
+            });
+            
+            logger.debug("Resposta da requisição PUT recebida", {
                 url,
                 status: response.status,
-                statusText: response.statusText
+                statusText: response.statusText,
+                responseSize: response.headers.get('content-length') || 'desconhecido'
+            });
+            
+            const result = await response.json();
+            
+            logger.logMethodExit('APIService.put', result, {
+                url,
+                status: response.status
             });
             
             return result;
         } catch (error) {
-            logger.error("PUT request failed", {
+            logger.logError("Falha na requisição PUT", error, {
                 url,
-                error: error.message,
-                stack: error.stack
+                headers: Object.keys(headers).join(', '),
+                dataKeys: Object.keys(data).join(', ')
             });
             throw error;
         }

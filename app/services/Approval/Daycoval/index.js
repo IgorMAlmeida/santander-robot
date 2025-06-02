@@ -3,73 +3,148 @@ import { login } from "./login.js";
 import { consult } from "./consult.js";
 import logger from "../../../utils/logger.js";
 
+/**
+ * Processa as propostas de aprovação do Daycoval
+ * @param {Array} proposals - Lista de propostas para aprovação
+ * @param {Object} credentials - Credenciais de login
+ * @returns {Promise<Array>} Resultado da aprovação
+ */
 export async function approval(proposals, credentials) {
-  logger.info("Starting Daycoval approval batch process", { 
+  logger.logMethodEntry('Daycoval.approval', { 
     proposalCount: proposals.length, 
-    username: credentials.username 
+    username: credentials.username,
+    bankName: 'Daycoval'
   });
   
   let { page, browser } = await initialize();
 
-  logger.debug("Initiating login");
+  logger.debug("Iniciando processo de login no Daycoval", {
+    username: credentials.username
+  });
+  
   const loginResult = await login(page, credentials);
   
   if (!loginResult.status) {
-    logger.error("Failed to login to Daycoval approval system", { error: loginResult.data });
+    logger.logError("Falha no login do Daycoval", new Error(loginResult.data || "Falha no login"), {
+      username: credentials.username
+    });
+    
     await browser.close();
+    
+    logger.logMethodExit('Daycoval.approval', [], {
+      proposalCount: proposals.length,
+      status: 'Falha',
+      reason: 'Erro no login'
+    });
+    
     return [];
   }
+  
+  logger.debug("Login realizado com sucesso, iniciando processamento de propostas", {
+    proposalCount: proposals.length,
+    proposalIds: proposals.map(p => p.proposal)
+  });
 
   let result = [];
 
   for (const proposal of proposals) {
-    logger.info("Processing proposal", { proposalId: proposal.proposal });
+    logger.info("Iniciando processamento de proposta", { 
+      proposalId: proposal.proposal,
+      bankName: 'Daycoval',
+      postBackUrl: proposal.postBack.url
+    });
     
     try {
-      logger.debug("Navigating to approval consultation page");
+      const consultationUrl = `https://consignado.daycoval.com.br/Autorizador/MenuWeb/Esteira/AprovacaoConsulta/UI.AprovacaoConsultaAnd.aspx`;
+      
+      logger.debug("Navegando para página de consulta de aprovações", {
+        url: consultationUrl,
+        waitUntil: "domcontentloaded",
+        timeout: 30000
+      });
+      
+      const navigationStartTime = Date.now();
       await page.goto(
-        `https://consignado.daycoval.com.br/Autorizador/MenuWeb/Esteira/AprovacaoConsulta/UI.AprovacaoConsultaAnd.aspx`,
+        consultationUrl,
         {
           waitUntil: "domcontentloaded",
           timeout: 30000,
         }
       );
+      const navigationEndTime = Date.now();
+      
+      logger.debug("Navegação concluída", {
+        navigationTimeMs: navigationEndTime - navigationStartTime,
+        currentUrl: page.url()
+      });
 
       const currentUrl = page.url();
       if (currentUrl.includes("login") || currentUrl.includes("Login")) {
-        logger.info("Session expired, logging in again");
+        logger.info("Sessão expirada, realizando novo login", {
+          currentUrl,
+          bankName: 'Daycoval'
+        });
 
-        logger.debug("Re-initiating login");
-        await login(page, credentials);
+        logger.debug("Iniciando processo de re-login");
+        const reLoginResult = await login(page, credentials);
+        
+        if (!reLoginResult.status) {
+          const error = new Error(reLoginResult.data || "Falha no re-login");
+          logger.logError("Falha no processo de re-login Daycoval", error, {
+            username: credentials.username,
+            currentUrl
+          });
+          throw error;
+        }
+        
+        logger.debug("Re-login realizado com sucesso");
 
-        logger.debug("Navigating to approval consultation page after re-login");
+        logger.debug("Navegando para página de consulta após re-login", {
+          url: consultationUrl,
+          waitUntil: "domcontentloaded",
+          timeout: 30000
+        });
+        
+        const reNavStartTime = Date.now();
         await page.goto(
-          `https://consignado.daycoval.com.br/Autorizador/MenuWeb/Esteira/AprovacaoConsulta/UI.AprovacaoConsultaAnd.aspx`,
+          consultationUrl,
           {
             waitUntil: "domcontentloaded",
             timeout: 30000,
           }
         );
+        const reNavEndTime = Date.now();
+        
+        logger.debug("Navegação após re-login concluída", {
+          navigationTimeMs: reNavEndTime - reNavStartTime,
+          currentUrl: page.url()
+        });
       }
 
-      logger.debug("Initiating consultation process", { proposalId: proposal.proposal });
-      const consultResult = await consult(page, proposal);
+      logger.debug("Iniciando processo de consulta e aprovação", { 
+        proposalId: proposal.proposal
+      });
       
-      logger.info("Consultation complete", { 
+      const consultStartTime = Date.now();
+      const consultResult = await consult(page, proposal);
+      const consultEndTime = Date.now();
+      
+      logger.info("Resultado da consulta e aprovação", { 
         proposalId: proposal.proposal, 
         status: consultResult.status, 
-        result: consultResult.data 
+        message: consultResult.data,
+        processingTimeMs: consultEndTime - consultStartTime
       });
 
       result.push({
         proposal: proposal.proposal,
         approved: consultResult.data,
+        processingTimeMs: consultEndTime - consultStartTime
       });
     } catch (error) {
-      logger.error("Error processing proposal", { 
-        proposalId: proposal.proposal, 
-        error: error.message,
-        stack: error.stack
+      logger.logError("Erro no processamento da proposta Daycoval", error, { 
+        proposalId: proposal.proposal,
+        url: page.url()
       });
       
       result.push({
@@ -77,26 +152,41 @@ export async function approval(proposals, credentials) {
         error: error.message,
       });
 
-      logger.debug("Closing and reinitializing browser after error");
+      // Reiniciar o navegador em caso de erro
+      logger.debug("Fechando e reinicializando navegador após erro", {
+        proposalId: proposal.proposal
+      });
+      
       await browser.close();
+      
+      logger.debug("Navegador fechado, iniciando nova instância");
       let recreate = await initialize();
       page = recreate.page;
       browser = recreate.browser;
       
-      logger.debug("Initiating login after browser reinitialize");
+      logger.debug("Nova instância do navegador inicializada, realizando login");
       await login(page, credentials);
     }
 
-    logger.info("Finished processing proposal", { proposalId: proposal.proposal });
+    logger.info("Proposta processada", { 
+      proposalId: proposal.proposal,
+      bankName: 'Daycoval',
+      success: !result[result.length-1].error
+    });
   }
 
-  logger.debug("Closing browser after completing all proposals");
+  logger.debug("Fechando navegador após conclusão de todas as propostas");
   await browser.close();
 
-  logger.info("Daycoval approval batch process complete", { 
+  // Estatísticas finais
+  const successCount = result.filter(r => !r.error).length;
+  const errorCount = result.filter(r => r.error).length;
+  
+  logger.logMethodExit('Daycoval.approval', result, { 
     proposalCount: proposals.length, 
-    successCount: result.filter(r => !r.error).length,
-    errorCount: result.filter(r => r.error).length
+    successCount,
+    errorCount,
+    successRate: `${Math.round((successCount / proposals.length) * 100)}%`
   });
 
   return result;
