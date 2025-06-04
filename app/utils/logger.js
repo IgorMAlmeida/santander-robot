@@ -4,9 +4,9 @@ import util from 'util';
 
 // Função para obter informações de linha/arquivo de um erro
 const getErrorFileInfo = (error) => {
-  if (!error || !error.stack) return null;
+  if (!error || !error?.stack) return null;
   
-  const stackLines = error.stack.split('\n');
+  const stackLines = error?.stack.split('\n');
   if (stackLines.length < 2) return null;
   
   // Pegar a linha do erro (normalmente a segunda linha do stack trace)
@@ -60,7 +60,7 @@ const detailedFormatter = winston.format((info) => {
     }
     
     // Garantir que temos a stack completa
-    info.stack = info.error.stack;
+    info.stack = info.error?.stack;
   }
   
   // Melhorar formatação de objetos data
@@ -74,7 +74,7 @@ const detailedFormatter = winston.format((info) => {
   }
   
   // Adicionar informações sobre o chamador
-  const stack = new Error().stack;
+  const stack = new Error()?.stack;
   const callerInfo = getErrorFileInfo({ stack });
   if (callerInfo && !info.caller) {
     info.caller = `${callerInfo.fileName}:${callerInfo.line}`;
@@ -111,8 +111,8 @@ const format = winston.format.combine(
     }
     
     // Adicionar stack trace para erros
-    if (info.level === 'error' && info.stack) {
-      message += `\n  Stack: ${info.stack}`;
+    if (info.level === 'error' && info?.stack) {
+      message += `\n  Stack: ${info?.stack}`;
     }
     
     return message;
@@ -152,7 +152,7 @@ logger.logError = (message, error, data = {}) => {
   logger.error(message, {
     error,
     data,
-    stack: error.stack
+    stack: error?.stack
   });
 };
 
