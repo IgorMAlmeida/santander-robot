@@ -22,6 +22,8 @@ export async function consult(page, proposal) {
       xpath: '//*[@id="corpo"]/header/div/div/div/div[2]/span'
     });
     
+    await sleep(2000);
+
     const startTimeAgentCode = Date.now();
     const codeAgent = await getElementTextByXpath(page, '//*[@id="corpo"]/header/div/div/div/div[2]/span');
     const codeAgentText = justNumbers(codeAgent);
