@@ -12,13 +12,16 @@ export const consultOleUserBank = async () => {
         const data = response.data;
 
         await ProposalConsult(data.file_id, data.proposals);
+
+        return {
+            status: true,
+            message: "Consultou o usuário do OLE"
+        };
     } catch (error) {
         console.error(error.message);
+        return {
+            status: false,
+            message: error.message
+        };
     }
 };
-
-consultOleUserBank().then(() => {
-    console.log("Consultou o usuário do OLE");
-}).catch((error) => {
-    console.error(error.message);
-});

@@ -2,6 +2,7 @@ import { initialize } from "../InitializePuppeteer.js";
 import { login } from "./login.js";
 import { consult } from "./consult.js";
 import logger from "../../../utils/logger.js";
+import { getCodeAgent } from "./codeAgent.js";
 
 /**
  * Processa as propostas de aprovação da Facta
@@ -31,20 +32,14 @@ export default async function approval(proposals, credentials) {
     
     await browser.close();
     
-    logger.logMethodExit('Facta.approval', [], {
-      proposalCount: proposals.length,
-      status: 'Falha',
-      reason: 'Erro no login'
-    });
+    logger.logMethodExit('Facta.approval', []);
     
     return [];
   }
+
+  const codeAgent = await getCodeAgent(page);
   
-  logger.debug("Login realizado com sucesso, iniciando processamento de propostas", {
-    proposalCount: proposals.length,
-    proposalIds: proposals.map(p => p.proposal),
-    loginData: loginResult.data
-  });
+  logger.debug("Login realizado com sucesso, iniciando processamento de propostas");
 
   let result = [];
 
@@ -56,59 +51,25 @@ export default async function approval(proposals, credentials) {
     });
     
     try {
-      logger.debug("Iniciando processo de consulta e aprovação", { 
-        proposalId: proposal.proposal
-      });
+      logger.debug("Iniciando processo de consulta e aprovação");
       
-      const consultStartTime = Date.now();
-      const consultResult = await consult(page, proposal);
-      const consultEndTime = Date.now();
+      const consultResult = await consult(page, proposal, codeAgent);
       
-      logger.info("Resultado da consulta e aprovação", { 
-        proposalId: proposal.proposal, 
-        status: consultResult.status, 
-        message: consultResult.data,
-        processingTimeMs: consultEndTime - consultStartTime
-      });
+      logger.info("Resultado da consulta e aprovação");
 
       result.push({
         proposal: proposal.proposal,
         approved: consultResult.data,
-        processingTimeMs: consultEndTime - consultStartTime
       });
     } catch (error) {
-      logger.logError("Erro no processamento da proposta Facta", error, { 
-        proposalId: proposal.proposal,
-        url: page.url()
-      });
+      logger.logError("Erro no processamento da proposta Facta", error);
       
       result.push({
         proposal: proposal.proposal,
         error: error.message,
       });
 
-      // Reiniciar o navegador em caso de erro
-      logger.debug("Fechando e reinicializando navegador após erro", {
-        proposalId: proposal.proposal
-      });
-      
-      await browser.close();
-      
-      logger.debug("Navegador fechado, iniciando nova instância");
-      let recreate = await initialize();
-      page = recreate.page;
-      browser = recreate.browser;
-      
-      logger.debug("Nova instância do navegador inicializada, realizando login");
-      const reLoginResult = await login(page, credentials);
-      
-      if (!reLoginResult.status) {
-        logger.warn("Falha no re-login após erro, pulando para próxima proposta", {
-          proposalId: proposal.proposal,
-          error: reLoginResult.data
-        });
-        continue;
-      }
+      logger.debug("Fechando navegador após erro");
     }
 
     logger.info("Proposta processada", { 

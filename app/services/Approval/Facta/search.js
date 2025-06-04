@@ -9,15 +9,15 @@ export default async function search(page, proposal) {
     { waitUntil: "domcontentloaded" }
   );
 
-  logger.debug("Entering proposal ID in search field", { proposalId: proposal });
+  logger.debug("Digitando o ID da proposta na busca");
   await page.type('::-p-xpath(//*[@id="codigoAf"])', proposal);
   
-  logger.debug("Selecting 'awaiting approval' filter");
+  logger.debug("Selecionando o filtro 'aguardando aprovação'");
   await clickElementByXpath(page, '//*[@id="aguardandoAprovacaoEsteira"]');
   
-  logger.debug("Clicking search button");
+  logger.debug("Clicando no botão de busca");
   await clickElementByXpath(page, '//*[@id="pesquisar"]');
 
   await sleep(500);
-  logger.debug("Search completed", { proposalId: proposal });
+  logger.debug("Pesquisa de proposta concluída");
 }

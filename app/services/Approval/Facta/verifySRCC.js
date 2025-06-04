@@ -4,44 +4,35 @@ import logger from "../../../utils/logger.js";
 export default async function verifySRCC(page, proposal, codeAgent) {
   logger.debug("Starting SRCC verification", { proposalId: proposal, codeAgent });
   
-  try {
-    logger.debug("Navigating to proposal analysis page");
-    await page.goto(
-      `https://desenv.facta.com.br/sistemaNovo/propostaAnalise.php?codigo=${proposal}&corretor=${codeAgent}`
-    );
+  logger.debug("Navigating to proposal analysis page");
+  await page.goto(
+    `https://desenv.facta.com.br/sistemaNovo/propostaAnalise.php?codigo=${proposal}&corretor=${codeAgent}`
+  );
 
-    await sleep(2000);
+  await sleep(2000);
 
-    logger.debug("Clicking SRCC history button");
-    await clickElementByXpath(page, '//*[@id="btnCarregaHistoricoSRCC"]');
+  logger.debug("Clicando no botão de histórico de SRCC");
+  await clickElementByXpath(page, '//*[@id="btnCarregaHistoricoSRCC"]');
 
-    await sleep(1000);
+  await sleep(1000);
 
-    logger.debug("Reading SRCC history content");
-    const divText = await getElementTextByXpath(page, '//*[@id="divHistoricoSRCC"]');
+  logger.debug("Lendo o conteúdo do histórico de SRCC");
+  const divText = await getElementTextByXpath(page, '//*[@id="divHistoricoSRCC"]');
 
-    if (divText === "Não foram encontrados resultados para sua pesquisa.") {
-      logger.debug("No SRCC results found", { proposalId: proposal });
-      return true;
-    }
-
-    logger.debug("Checking SRCC flag value");
-    const srccTd = await getElementTextByXpath(page, '//*[@id="divHistoricoSRCC"]/table/tbody/tr/td[3]');
-    logger.debug("SRCC flag value", { srccValue: srccTd });
-
-    if (!srccTd || srccTd === 'N') {
-      logger.debug("SRCC flag is negative or empty, proceeding", { proposalId: proposal });
-      return true;
-    }
-
-    logger.warn("SRCC flag is positive, cannot proceed", { proposalId: proposal, srccValue: srccTd });
-    return false;
-  } catch (err) {
-    logger.error("Error during SRCC verification", { 
-      proposalId: proposal, 
-      error: err.message,
-      stack: err.stack
-    });
-    return false;
+  if (divText === "Não foram encontrados resultados para sua pesquisa.") {
+    logger.debug("Nenhum resultado encontrado para a pesquisa de SRCC");
+    return true;
   }
+
+  logger.debug("Verificando o valor do flag de SRCC");
+  const srccTd = await getElementTextByXpath(page, '//*[@id="divHistoricoSRCC"]/table/tbody/tr/td[3]');
+  logger.debug("Valor do flag de SRCC", { srccValue: srccTd });
+
+  if (!srccTd || srccTd === 'N') {
+    logger.debug("Flag de SRCC é negativa ou vazia, prosseguindo");
+    return true;
+  }
+
+  logger.warn("Flag de SRCC é positiva, não é possível prosseguir");
+  throw new Error("Proposta possui registro de SRCC");
 }
