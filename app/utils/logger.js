@@ -152,7 +152,7 @@ logger.logError = (message, error, data = {}) => {
   logger.error(message, {
     error,
     data,
-    stack: error?.stack
+    stack: error?.stack || "Não há stack trace"
   });
 };
 
