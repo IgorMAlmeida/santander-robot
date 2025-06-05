@@ -10,7 +10,6 @@ import { DaycovalApproval } from './controllers/Approval/Daycoval.js';
 import { FactaApproval } from './controllers/Approval/Facta.js';
 import { OLEApproval } from './controllers/Approval/OLE.js';
 import { ItauFinancial } from './controllers/Financial/Itaú.js';
-import { consultOleUserBank } from './jobs/consultOleUserBank.js';
 
 const upload = multer({ dest: 'uploads/' });
 const router = express.Router();
@@ -136,6 +135,5 @@ router.post("/api/consult/aprovacao/ole/proposal", OLEApproval);
 
 router.post("/api/financiamento/itau", ItauFinancial);
 
-router.post("/api/consult/ole/user/bank", consultOleUserBank);
 
 export default router;
