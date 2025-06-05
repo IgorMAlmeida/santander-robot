@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export async function ProposalConsult(fileId, proposals) {
-  const { page, browser } = await initialize();
+  const { page, browser } = await initialize(true);
   
   try {
     const url = process.env.OLE_URL_BASE;

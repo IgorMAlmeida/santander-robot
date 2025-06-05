@@ -7,7 +7,7 @@ import logger from "../../utils/logger.js";
 puppeteer.use(StealthPlugin());
 puppeteer.use(AdblockerPlugin({ blockTrackers: true }));
 
-export async function initialize() {
+export async function initialize(headless = false) {
     logger.logMethodEntry('InitializePuppeteer.initialize');
     
     try {
@@ -15,7 +15,7 @@ export async function initialize() {
         
         const browserConfig = {
             args: ["--no-sandbox", "--disable-setuid-sandbox"],
-            headless: false,
+            headless,
             ignoreDefaultArgs: ["--disable-extensions", "--enable-automation"],
             executablePath: executablePath(),
         };
