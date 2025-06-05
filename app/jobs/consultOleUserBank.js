@@ -25,3 +25,5 @@ export const consultOleUserBank = async () => {
         };
     }
 };
+
+consultOleUserBank()

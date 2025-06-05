@@ -58,7 +58,6 @@ export async function login(page, credentials) {
     logger.error("Error during Daycoval approval login", { 
       username: credentials.username,
       error: error.message,
-      stack: error.stack
     });
     
     return {

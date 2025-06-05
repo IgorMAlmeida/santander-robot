@@ -40,10 +40,9 @@ export async function login(page, credentials) {
   } catch (error) {
     logger.error("Error during Facta approval login", { 
       username: credentials.username,
-      error: error.message,
-      stack: error.stack
+      error: error.message
     });
-    
+
     return { status: false, data: error.message };
   }
 }
