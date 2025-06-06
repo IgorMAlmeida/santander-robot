@@ -6,7 +6,7 @@ const app = express();
 app.use(express.json());
 
 app.use('/', routes);
-
-app.listen(3050, function() {
-    console.log('Running on port 3050.');
+const port = process.env.PORT || 3050;
+app.listen(port, function() {
+    console.log('Running on port ' + port);
 });

@@ -1,14 +1,11 @@
 export async function getByXpath (page, xpath) {
-
     const element = await page.$(`::-p-xpath(${xpath})`);
     return element;
 };
 
 export async function clickElementByXpath (page, xpath) {
-
     const button = await page.waitForSelector(`::-p-xpath(${xpath})`);
     await button.click();
-
 };
 
 export async function elementHover (page, xpath) {
@@ -95,4 +92,12 @@ export function replaceValues(value) {
         let newValue = value.replace(/\./g, '');
         return newValue.replace(/,/g, '.');
     }
+}
+
+export async function getAltTextByXPath(page, xpath) {
+    const elements = await page.$x(xpath);
+    if (elements.length > 0) {
+        return await page.evaluate(img => img.getAttribute('alt'), elements[0]);
+    }
+    return null;
 }
