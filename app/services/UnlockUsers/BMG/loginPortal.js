@@ -3,6 +3,7 @@ import { checkElementAndText, clickElementByXpath, getElementTextByXpath, sleep 
 import path from 'path';
 import fs from 'fs';
 import { PortalError } from '../../../errors/PortalError.js';
+import { error } from 'console';
 
 export async function loginPortal(page) {
   try {
@@ -44,12 +45,18 @@ export async function loginPortal(page) {
     const checkErrorLogin = await checkElementAndText(page, '//*[@id="msg-error"]');
     if(checkErrorLogin.status){
       if (checkErrorLogin.text.includes('Foi detectada uma possível tentativa de acesso simultâneo')) {
-        throw new PortalError("Acesso simultaneo bloqueado pelo portal", true);
+        throw new PortalError(checkErrorLogin.text, true);
       } 
       
       if(checkErrorLogin.text.includes('A palavra de verificação está inválida.')){
         throw new PortalError("Captcha Invalido.",true);
       }
+
+      if(checkErrorLogin.text.includes('se encontra bloqueado. Entre em contato com Master.')){
+        throw new PortalError(checkErrorLogin.text,true);
+      }
+
+      throw new Error("Erro não identificado. No login.");
     }
   
     return {

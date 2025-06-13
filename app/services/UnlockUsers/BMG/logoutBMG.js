@@ -1,6 +1,7 @@
 import { awaitElement, clickElementByXpath, sleep } from "../../../../utils.js"
 import path from 'path';
 import fs from 'fs';
+
 export async function logoutBmg(page) {
     const debugDir = path.join(process.cwd(), 'debug_logs');
     if (!fs.existsSync(debugDir)) {

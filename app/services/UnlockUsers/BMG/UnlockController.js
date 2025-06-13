@@ -42,21 +42,23 @@ export async function UnlockController(params) {
 
     console.log(params)
     console.log('Login concluido com sucesso. Iniciando desbloqueio...');
-    const unlock = UnlockUser(loginData.data, params);
+    const unlock = await UnlockUser(loginData.data, params);
+    await sleep(15000);
     await sleep(1000)
     if(!unlock.status) {
-      throw new Error("Erro ao desbloquear usuário. Verifique os parâmetros de consulta.");
+      throw new Error(unlock.data);
     }
-    // await browser.close();
+
+    // const checkEmailPass =
+
     return {
       status: true,
       response: "Usuario desbloqueado com sucesso",
-      data: consultData.data
+      data: unlock.data
     };
   } catch (err) {
     // await browser.close();
     // await logoutBmg(page);
-    await logoutBmg(page);
 
     return {
       status: false,
