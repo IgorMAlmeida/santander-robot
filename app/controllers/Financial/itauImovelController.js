@@ -1,12 +1,12 @@
-import simulation from "../../services/Financiamento/Itaú/index.js";
+import simulation from "../../services/Financiamento/ItauImovel/index.js";
 import ControllerResponse from '../../utils/ControllerResponse.js';
 
-export async function ItauFinancial(req, res) {
+export async function ItauImovelFinancial(req, res) {
     try {
         const data = req?.body?.data;
 
         if (!data) {
-            throw new Error("Faltou a proposta");
+            throw new Error("Faltou os dados da proposta");
         }
 
         const result = await simulation(data);
