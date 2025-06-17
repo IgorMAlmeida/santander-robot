@@ -1,5 +1,5 @@
-import simulation from "../../services/Financiamento/ItauImovel/index.js";
 import ControllerResponse from '../../utils/ControllerResponse.js';
+import { simulationQueue } from '../../../queue/simulationQueue.js';
 
 export async function ItauImovelFinancial(req, res) {
     try {
@@ -9,13 +9,11 @@ export async function ItauImovelFinancial(req, res) {
             throw new Error("Faltou os dados da proposta");
         }
 
-        const result = await simulation(data);
-
-        if (!result.status) {
-            return ControllerResponse.error(res, result);
-        }
-
-        return ControllerResponse.success(res, result.response);
+        const job = await simulationQueue.add('jobQueueSimulation', data);
+        return ControllerResponse.success(res, {
+            message: 'Simulação enfileirada',
+            jobId: job.id
+          });
     } catch (error) {
         return ControllerResponse.error(res, error);
     }

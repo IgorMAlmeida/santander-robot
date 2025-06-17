@@ -10,3 +10,19 @@ services:
       - ~/.cache/puppeteer:/root/.cache/puppeteer 
     restart: always
     entrypoint: "./entrypoint.sh"
+    networks:
+      - app-network
+    environment:
+      - REDIS_HOST=redis
+  
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+  
+networks:
+  app-network:
+    driver: bridge

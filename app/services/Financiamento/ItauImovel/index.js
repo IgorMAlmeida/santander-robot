@@ -14,6 +14,7 @@ export default async function simulation(data) {
 
     const browser = await puppeteer.launch({
       headless: false,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
       defaultViewport: null,
       slowMo: 50,
     });
@@ -22,9 +23,9 @@ export default async function simulation(data) {
     const page = pagesBefore[0];
 
     let response = "Teste";
-    const username = process.env.ITAU_IMOVEL_LOGIN;
-    const password = process.env.ITAU_IMOVEL_PASS_LOGIN;
-    const ITAU_IMOVEL_URL = (process.env.ITAU_IMOVEL_URL || '').replace(/"/g, '').trim();
+    const username = process.env.ITAU_IMOVEL_LOGIN || 'juliana.soares@credifranco.com.br';
+    const password = process.env.ITAU_IMOVEL_PASS_LOGIN || 'Sucesso@2024';
+    const ITAU_IMOVEL_URL = (process.env.ITAU_IMOVEL_URL || 'https://plataformaitauimoveis.cloud.itau.com.br/Portal/').replace(/"/g, '').trim();
     console.log("🔗 Acessando:", ITAU_IMOVEL_URL);
 
     await page.goto(ITAU_IMOVEL_URL, { waitUntil: "domcontentloaded" });
