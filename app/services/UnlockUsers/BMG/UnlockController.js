@@ -8,6 +8,7 @@ import path from 'path';
 import fs from 'fs';
 import { sleep } from '../../../../utils.js';
 import { logoutBmg } from './logoutBMG.js';
+import { checkInboxEmail } from './checkInboxEmail.js';
 
 puppeteer.use(StealthPlugin());
 puppeteer.use(AdblockerPlugin({ blockTrackers: true }));
@@ -30,30 +31,35 @@ export async function UnlockController(params) {
 
   const page = await browser.newPage();
   try {
-    console.log('Iniciando Login...');
+    // console.log('Iniciando Login...');
 
-    const loginData = await loginPortal(page);
-    if (!loginData.status) {
-      if (loginData.isPortalError) {
-        await browser.close();
-      }
-      throw new Error(loginData.data);
+    // const loginData = await loginPortal(page);
+    // if (!loginData.status) {
+    //   if (loginData.isPortalError) {
+    //     await browser.close();
+    //   }
+    //   throw new Error(loginData.data);
+    // }
+
+    // console.log(params)
+    // console.log('Login concluido com sucesso. Iniciando desbloqueio...');
+    // const unlock = await UnlockUser(loginData.data, params);
+    // if(!unlock.status) {
+    //   throw new Error(unlock.data);
+    // }
+    // const checkEmailPass = await checkInboxEmail(loginData.data, params);
+
+    const checkEmailPass = await checkInboxEmail(page, params);
+    if(!checkEmailPass.status) {
+      throw new Error(checkEmailPass.data);
     }
 
-    console.log(params)
-    console.log('Login concluido com sucesso. Iniciando desbloqueio...');
-    const unlock = await UnlockUser(loginData.data, params);
     await sleep(15000);
     await sleep(1000)
-    if(!unlock.status) {
-      throw new Error(unlock.data);
-    }
-
-    // const checkEmailPass =
 
     return {
       status: true,
-      response: "Usuario desbloqueado com sucesso",
+      response: unlock.message,
       data: unlock.data
     };
   } catch (err) {

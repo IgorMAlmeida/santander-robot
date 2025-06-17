@@ -44,6 +44,8 @@ RUN npm install
 # Instala o Puppeteer no cache (sem baixar o Chrome novamente)
 RUN npx puppeteer install --chrome
 
+RUN npm install imap-simple 
+
 RUN mkdir -p /usr/src/app/user_data && chmod -R 777 /usr/src/app/user_data
 
 # Configura o display para o Chrome headless

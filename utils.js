@@ -51,51 +51,6 @@ export async function blockUnnecessaryRequests(page) {
     });
 }
 
-export async function getLinkByXPath(page, xpath, options = {}) {
-    const { timeout = 10000, required = true } = options;
-    
-    try {
-        await page.waitForXPath(xpath, { visible: true, timeout });
-        
-        const elements = await page.$x(xpath);
-        
-        if (elements.length === 0) {
-            if (required) {
-                throw new Error(`Elemento não encontrado com XPath: ${xpath}`);
-            }
-            return null;
-        }
-        
-        const url = await page.evaluate(element => {
-            if (element.hasAttribute('href')) {
-                return element.getAttribute('href');
-            }
-            
-            if (element.hasAttribute('onclick')) {
-                const onclick = element.getAttribute('onclick');
-                const urlMatches = onclick.match(/(window\.open|location\.href)\s*\(\s*['"]([^'"]+)['"]/);
-                if (urlMatches && urlMatches[2]) {
-                    return urlMatches[2];
-                }
-            }
-            
-            return null;
-        }, elements[0]);
-        
-        if (!url && required) {
-            throw new Error('Elemento encontrado mas não contém link válido');
-        }
-        
-        return url;
-        
-    } catch (error) {
-        if (!required) {
-            console.warn(`getLinkByXPath opcional falhou: ${error.message}`);
-            return null;
-        }
-        throw new Error(`Falha ao extrair link por XPath: ${error.message}`);
-    }
-}
 export async function awaitElement(page, selector) {
     try{
         const element = await page.waitForSelector(`xpath=${selector}`, { timeout: 1000 });
@@ -143,6 +98,7 @@ export async function getAltTextByXPath(page, xpath) {
     try {
         const elements = await page.$$(`xpath/${xpath}`);
         
+        console.log(`elements dentro de getAltTextByXPath para path${xpath}`, elements);
         if (elements.length > 0) {
             return await page.evaluate(img => img.getAttribute('alt'), elements[0]);
         }
@@ -152,6 +108,25 @@ export async function getAltTextByXPath(page, xpath) {
         return null;
     }
 }
+export async function getLinkByXPath(page, xpath) {
+  const elements = await page.$$(`xpath/${xpath}`);
+  const element = elements[0];
+  if (!element) return null;
+
+  return page.evaluate(el => {
+    if (el.href) return el.href;
+
+    if (el.onclick) {
+      const matches = el.onclick.toString().match(
+        /(?:location\.href\s*=\s*['"]([^'"]+)['"]|\.href\s*\(\s*['"]([^'"]+)['"])/i
+      );
+      if (matches) return matches[1] || matches[2];
+    }
+
+    return el.dataset.href || el.dataset.url || null;
+  }, element);
+}
+
 
 export async function typeCPFWithMask(page, xpath, cpf) {
     await page.evaluate((xpath) => {

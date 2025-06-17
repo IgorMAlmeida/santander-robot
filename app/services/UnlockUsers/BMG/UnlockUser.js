@@ -49,8 +49,7 @@ const resetUnlockField = 'S';
   }
 export async function UnlockUser(page, param) {
   try {
-    console.log("---------- Entrou no desbloqueio do Usuario---------------------");
-
+    console.log("----------Entrou no desbloqueio do Usuario---------------------");
     const sanitizedCPF = await sanitizeCPF(param.cpf);
     if(sanitizedCPF == ''){
       throw new Error('Invalid CPF');
@@ -60,7 +59,6 @@ export async function UnlockUser(page, param) {
         waitUntil: 'networkidle2',
         timeout: 30000
     });
-    console.log('URL sidebar:', page.url());
     await clickElementByXpath(page, '//*[@id="slidingMenu"]/form/div[8]/a');
     await clickElementByXpath(page, '//*[@id="accordion-8"]/ul/li[1]/a');
 
@@ -69,47 +67,51 @@ export async function UnlockUser(page, param) {
         timeout: 30000
     });
 
-    console.log('URL de busca:', page.url());
+    console.log("Busca de usuario");
     await sleep(1000);
-
     let user = await searchUser(page, [sanitizedCPF, param.user]);
     if(!user.status){
       throw new Error(user.data)
     }
 
     page = user.data;
-    console.log("busca do termo de bloqueio no alttxt", page.url());
+    await sleep(1000);
+    console.log("Verificando se usuario esta bloqueado pelo alt text do botao");
     const altText = await getAltTextByXPath(page, '//*[@id="usuario"]/tbody/tr/td[8]/table/tbody/tr/td[2]/a/img');
     console.log('altText:', altText);
-    if (altText === 'Bloquear') {
+    if (altText.includes('Bloquear')) {
       return {
         status: true,
         data: page,
         message: 'Usuário já desbloqueado.'
       };
-      throw new Error('Usuário já desbloqueado');
     }
 
-    console.log("passou do teste de user desbloqueado");
-    await sleep(1500);
+    console.log('Pegando o codigo de usuario')
+    let popupUrl = await getLinkByXPath(page,'//*[@id="usuario"]/tbody/tr/td[8]/table/tbody/tr/td[5]/a');
+    const match = popupUrl.match(/reinicializarSenha\('([^']+)'/);
+    if (!match) {
+      throw new Error('Não foi possível extrair o código do href.');
+    }
+    const codigoUsuario = match[1];
+    console.log('Codigo de usuario:', codigoUsuario);
 
+    console.log("Vai para url do popup de desbloqueio usuario");
+    await sleep(1000);
     await clickElementByXpath(page, '//*[@id="usuario"]/tbody/tr/td[8]/table/tbody/tr/td[2]/a/img');
-    
-    await page.goto('https://www.bmgconsig.com.br/cadastroUsuario.do?method=abrirObservacoes&codigoUsuario=4B8E6AA7A4B34344B43AF860DA0AD9D2&alterouUsuario=true&acao=DESBLOQUEAR', {
+    console.log("ir para pagina de obs de desbloqueio");
+    await page.goto(`https://www.bmgconsig.com.br/cadastroUsuario.do?method=abrirObservacoes&codigoUsuario=${codigoUsuario}&alterouUsuario=true&acao=DESBLOQUEAR`, {
       waitUntil: 'networkidle2',
       timeout: 30000
     });
 
+    console.log("Abrindo pop up de desbloqueio para inserir obs");
     await page.type('::-p-xpath(/html/body/form/table[2]/tbody/tr[2]/td/textarea)', obsUnlockField);
     await clickElementByXpath(page, '//*[@id="buttonLink"]/span');
-
+    
     await sleep(1000);
-    await page.goto('https://www.bmgconsig.com.br/cadastroUsuario.do?', {
-      waitUntil: 'networkidle2',
-      timeout: 30000
-    });
-
-    const messageText = await checkElementAndText(page, '/html/body/table/tbody/tr/td/p/font'); //mensagem pós desbloqueio
+    const messageText = await checkElementAndText(page, '/html/body/table/tbody/tr/td/p/font'); 
+    console.log("Mensagem após desbloqueio",messageText);
     if(!messageText.status){
       const messageTextError = await checkElementAndText(page, '/html/body/table[1]/tbody/tr[3]/td/table/tbody/tr/td[2]/font');
       if(!messageTextError.status){
@@ -122,44 +124,53 @@ export async function UnlockUser(page, param) {
       timeout: 30000
     });
 
+    console.log("Procura usuario novamente");
     user = await searchUser(page, [sanitizedCPF, param.user]);
     if(!user.status){
       throw new Error(user.data)
     }
     await sleep(1000);
     page = user.data;
-    console.log('pós busca d usuario')
-    console.log(page.url())
-    const altTextResetPass = await getAltTextByXPath(page, '//*[@id="usuario"]/tbody/tr/td[8]/table/tbody/tr/td[5]/a/img');//clique no botao de reset de senha
+
+    console.log('Pega alt text para verificar se há reset de senha disponivel');
+    const altTextResetPass = await getAltTextByXPath(page, '//*[@id="usuario"]/tbody/tr/td[8]/table/tbody/tr/td[5]/a/img');
     if (altTextResetPass !== 'Reinicializar senha') {
       throw new Error('Reset de senha nao disponivel');
     }
 
-    //Pega a url referencia para envio de email
-    // https://www.bmgconsig.com.br/cadastro/usuario/formaEnvioSenha.jsp?codigoUsuario=6C986F83F2384A2B85E3CFFF9D09F0F7       url send mail
-    let popupUrl = await getLinkByXPath(page,'//*[@id="usuario"]/tbody/tr/td[8]/table/tbody/tr/td[5]/a');
-    console.log('popupUrl', popupUrl);
-    // popup de envio de email
-    await page.goto('https://www.bmgconsig.com.br/cadastro/usuario/formaEnvioSenha.jsp?codigoUsuario=4B8E6AA7A4B34344B43AF860DA0AD9D2', {
+    console.log('Vai para URl de envio de email')
+    const urlSendMail = `${process.env.BMGCONSIG_DESBLOQUEIO}/cadastro/usuario/formaEnvioSenha.jsp?codigoUsuario=${codigoUsuario}`;
+    await page.goto(urlSendMail, {
       waitUntil: 'networkidle2',
       timeout: 30000
     });
 
-    console.log('url reset pass', page.url());
-    await clickElementByXpath(page, '//*[@id="buttonLink"]/span');
-   
-    await page.goto('https://www.bmgconsig.com.br/cadastroUsuario.do?method=abrirObservacoes&codigoUsuario=4B8E6AA7A4B34344B43AF860DA0AD9D2&alterouUsuario=true&acao=REINICIALIZAR_SENHA&tipoEnvioSenha=EMAIL', {
+    console.log('clique no botao de reset de senha')
+    await clickElementByXpath(page, '//*[@id="buttonLink"]');
+    await sleep(1000);
+    await page.goto(`https://www.bmgconsig.com.br/cadastroUsuario.do?method=abrirObservacoes&codigoUsuario=${codigoUsuario}&&alterouUsuario=true&acao=REINICIALIZAR_SENHA&tipoEnvioSenha=EMAIL`,{
       waitUntil: 'networkidle2',
       timeout: 30000
-    });
+    })
 
+    await sleep(1000);
+    console.log('Escreve obs de reset de senha');
     await page.type('::-p-xpath(/html/body/form/table[2]/tbody/tr[2]/td/textarea)', resetUnlockField);
-    await clickElementByXpath(page, '//*[@id="buttonLink"]/span');
+    await clickElementByXpath(page, '//*[@id="buttonLink"]');
+    console.log('Elemento clicado e email enviado');
+
+    await sleep(1000);
+    await page.waitUntilNavigation({ waitUntil: 'networkidle2', timeout: 30000 });
+    const messageTextFinalizingUnlock = await checkElementAndText(page, '/html/body/table/tbody/tr/td/p/font');
+    console.log('Texto checado apos desbloqueio:', messageTextFinalizingUnlock);
+    if(!messageTextFinalizingUnlock.status){
+      throw new Error(messageTextFinalizingUnlock.text);
+    }
 
     return {
       status: true,
       data: page,
-      message: messageText.text
+      message: messageTextFinalizingUnlock.text
     };
   } catch (error) {
     console.error('Error during unlocking:', error);
@@ -168,7 +179,5 @@ export async function UnlockUser(page, param) {
       data: error
     };
   }
-
-
  
 }
