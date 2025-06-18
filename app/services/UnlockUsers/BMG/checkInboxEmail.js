@@ -23,49 +23,73 @@ export async function checkInboxEmail(page, params) {
     }
   };
 
-  console.log(config)
- 
-
   try {
     console.log(`Conectando ao servidor IMAP: ${config.imap.host}:${config.imap.port}`);
     const connection = await imap.connect(config);
     await connection.openBox('INBOX');
+    const imapDate = () => {
+      const today = new Date();
+      const day = String(today.getDate() -1).padStart(2, '0');
+      // const day = String(today.getDate()).padStart(2, '0');
+      const month = today.toLocaleString('en-US', { month: 'short' });
+      const year = today.getFullYear();
+      return `${day}-${month}-${year}`;
+    }
 
+    console.log(`Caixa de entrada aberta. Data atual: ${imapDate()}`);
     console.log('Conexão IMAP estabelecida e caixa de entrada aberta.');
     const searchCriteria = [
       // 'UNSEEN',
-      ['FROM', process.env.BMG_RECOVERY_EMAIL_SENDER],
-      ['SUBJECT', `${process.env.BMG_RECOVERY_EMAIL_SUBJECT}`]
-      // ['FROM','todomundo@nubank.com.br'],
-      // ['SUBJECT', `Seu limite adicional será reduzido`]
+      ['HEADER', 'FROM', `${process.env.BMG_RECOVERY_EMAIL_SENDER}`],
+      ['HEADER', 'SUBJECT', `${process.env.BMG_RECOVERY_EMAIL_SUBJECT}`],
+      // ['TEXT', params.user],
+      ['SINCE', `${imapDate()}`]
     ];
 
-    const fetchOptions = { bodies: ['HEADER', 'TEXT'], markSeen: true };
+    console.log('Procurando e-mails com critérios:', searchCriteria);
+    const fetchOptions = { bodies: ['HEADER', 'TEXT'], markSeen: false };
 
     const recoveryLink = await new Promise(async (resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error('Timeout: E-mail de recuperação não recebido'));
       }, params.timeout || 300000);
       
+      console.log('Iniciando busca por e-mails...');
       try {
         const interval = setInterval(async () => {
+          console.log('Busca iniciada...');
+
           const messages = await connection.search(searchCriteria, fetchOptions);
-          console.log('Conexão Mensagens.',messages);
-          
-          if (messages.length > 0) {
-            clearInterval(interval);
-            clearTimeout(timeout);
-            
-            const parsed = await simpleParser(messages[0].parts[0].body);
-            const link = extractRecoveryLink(parsed.text || parsed.html);
-            
-            if (link) {
-              resolve(link);
-            } else {
-              reject(new Error('Link de recuperação não encontrado no e-mail'));
+
+          console.log(`Encontrados ${messages} e-mails correspondentes.`);
+          for (const msg of messages) {
+            const all = msg.parts.map(part => part.body).join('\n');
+            const parsed = await simpleParser(all);
+            console.log('==============================');
+            console.log('Mensagem:', msg);
+            console.log('Parsed:', parsed);
+            console.log('De:', parsed.from?.text);
+            console.log('Data:', parsed.date);
+            console.log('Mensagem ID:', parsed.messageId);
+            console.log('Corpo:', parsed.text || parsed.html);
+
+            if (
+              parsed.from?.text?.includes('bmgconsig@bancobmg.com.br') &&
+              parsed.subject?.includes('Solicitação de nova senha BMG Consig') &&
+              parsed.text?.includes(params.user)
+            ) {
+              clearInterval(interval);
+              clearTimeout(timeout);
+
+              const link = await extractRecoveryLink(parsed.text || parsed.html);
+              console.log('Link de recuperação encontrado:', link);
+              if (link) return resolve(link);
+              return reject(new Error('Link de recuperação não encontrado no e-mail'));
             }
           }
-        }, 15000);
+          console.log('Nada encontrado...');
+
+        }, 1000);
       } catch (error) {
         clearTimeout(timeout);
         reject(error);
@@ -101,12 +125,15 @@ export async function checkInboxEmail(page, params) {
     };
   }
 
-  function extractRecoveryLink(emailContent) {
+  async function extractRecoveryLink(emailContent) {
     const urlPatterns = [
       /https?:\/\/[^\s]*recovery[^\s]*/i,
       /https?:\/\/[^\s]*reset[^\s]*/i,
       /https?:\/\/[^\s]*senha[^\s]*/i,
-      /https?:\/\/[^\s]*token=[^\s]*/i
+      /https?:\/\/[^\s]*token=[^\s]*/i,
+      /bmgconsig?:\/\/[^\s]*ResetSenha=[^\s]*/i,
+      /https?:\/\/[^\s<>"']+/gi,
+      /www\.bmgconsig\.com\.br\/ResetSenha\?[^ \n\r\t<>"]+/gi
     ];
 
     for (const pattern of urlPatterns) {

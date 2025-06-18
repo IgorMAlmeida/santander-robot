@@ -79,13 +79,13 @@ export async function UnlockUser(page, param) {
     console.log("Verificando se usuario esta bloqueado pelo alt text do botao");
     const altText = await getAltTextByXPath(page, '//*[@id="usuario"]/tbody/tr/td[8]/table/tbody/tr/td[2]/a/img');
     console.log('altText:', altText);
-    if (altText.includes('Bloquear')) {
-      return {
-        status: true,
-        data: page,
-        message: 'Usuário já desbloqueado.'
-      };
-    }
+    // if (altText.includes('Bloquear')) {
+    //   return {
+    //     status: true,
+    //     data: page,
+    //     message: 'Usuário já desbloqueado.'
+    //   };
+    // }
 
     console.log('Pegando o codigo de usuario')
     let popupUrl = await getLinkByXPath(page,'//*[@id="usuario"]/tbody/tr/td[8]/table/tbody/tr/td[5]/a');
@@ -159,8 +159,9 @@ export async function UnlockUser(page, param) {
     await clickElementByXpath(page, '//*[@id="buttonLink"]');
     console.log('Elemento clicado e email enviado');
 
-    await sleep(1000);
-    await page.waitUntilNavigation({ waitUntil: 'networkidle2', timeout: 30000 });
+    await sleep(2000);
+    // await page.awaitUntilNavigation({ waitUntil: 'networkidle2', timeout: 30000 });
+    await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000  });
     const messageTextFinalizingUnlock = await checkElementAndText(page, '/html/body/table/tbody/tr/td/p/font');
     console.log('Texto checado apos desbloqueio:', messageTextFinalizingUnlock);
     if(!messageTextFinalizingUnlock.status){

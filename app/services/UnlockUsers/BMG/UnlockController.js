@@ -31,25 +31,25 @@ export async function UnlockController(params) {
 
   const page = await browser.newPage();
   try {
-    // console.log('Iniciando Login...');
+    console.log('Iniciando Login...');
 
-    // const loginData = await loginPortal(page);
-    // if (!loginData.status) {
-    //   if (loginData.isPortalError) {
-    //     await browser.close();
-    //   }
-    //   throw new Error(loginData.data);
-    // }
+    const loginData = await loginPortal(page);
+    if (!loginData.status) {
+      if (loginData.isPortalError) {
+        await browser.close();
+      }
+      throw new Error(loginData.data);
+    }
 
-    // console.log(params)
-    // console.log('Login concluido com sucesso. Iniciando desbloqueio...');
-    // const unlock = await UnlockUser(loginData.data, params);
-    // if(!unlock.status) {
-    //   throw new Error(unlock.data);
-    // }
-    // const checkEmailPass = await checkInboxEmail(loginData.data, params);
-
-    const checkEmailPass = await checkInboxEmail(page, params);
+    console.log(params)
+    console.log('Login concluido com sucesso. Iniciando desbloqueio...');
+    const unlock = await UnlockUser(loginData.data, params);
+    if(!unlock.status) {
+      throw new Error(unlock.data);
+    }
+    
+    const checkEmailPass = await checkInboxEmail(loginData.data, params);
+    // const checkEmailPass = await checkInboxEmail(page, params);
     if(!checkEmailPass.status) {
       throw new Error(checkEmailPass.data);
     }
