@@ -5,8 +5,8 @@
   "type": "module",
   "main": "app.js",
   "scripts": {
-    "start": "Xvfb :99 -ac -screen 0 1024x768x24 & nodemon app.js & npm run worker",
-    "worker": "node /usr/src/queue/simulationWorker.js"
+    "start": "Xvfb :99 -ac -screen 0 1024x768x24 & nodemon app.js & nodemon queue/simulationWorker.js",
+    "worker": "node queue/simulationWorker.js"
   },
   "author": "",
   "license": "ISC",
