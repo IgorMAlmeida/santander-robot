@@ -31,7 +31,6 @@ export default async function simulation(data) {
     await page.goto(ITAU_IMOVEL_URL, { waitUntil: "domcontentloaded" });
     console.log("📄 Página carregada");
 
-    // Aguarda o campo de e-mail aparecer
     await page.waitForSelector('input[name="txtUsuario"]', { timeout: 10000 });
     console.log("🟢 Campo de e-mail localizado");
     await page.type('input[name="txtUsuario"]', username);
@@ -40,7 +39,6 @@ export default async function simulation(data) {
     console.log("🟢 Campo de senha localizado");
     await page.type('input[name="txtSenha"]', password);
 
-    //Login
     try {
       await page.waitForSelector('#btnEntrar', { timeout: 10000 });
       console.log("🟢 Botão de login localizado");
@@ -58,7 +56,6 @@ export default async function simulation(data) {
       await page.click('#btnEntrar');
       console.log("🔐 Login enviado.");
     
-      // Espera a navegação completar
       await navigationPromise;
       console.log("🔄 Página redirecionada após login.");
     } catch (navErr) {
@@ -71,9 +68,8 @@ export default async function simulation(data) {
       }
     }
 
-    //Comunicado Inicial
     try {
-      await page.waitForSelector('#btnOk0', { visible: true, timeout: 30000 }); // espera até 10 segundos
+      await page.waitForSelector('#btnOk0', { visible: true, timeout: 30000 });
       await page.click('#btnOk0');
       console.log("✔️ Botão #btnOk0 clicado com sucesso.");
     } catch (error) {
@@ -86,7 +82,6 @@ export default async function simulation(data) {
       }
     }
     
-    //Seleciona menu
     try {
       await page.waitForSelector('#simulador_de_financiamento_menu a', { visible: true });
       await page.hover('#simulador_de_financiamento_menu a');
@@ -118,7 +113,7 @@ export default async function simulation(data) {
 
         await page.waitForSelector('#txtDataNacimentoPrimario', { visible: true });
         await page.click('#txtDataNacimentoPrimario');
-        await page.type('#txtDataNacimentoPrimario', data.birth_date); // 'd/m/Y
+        await page.type('#txtDataNacimentoPrimario', data.birth_date);
 
         await page.waitForSelector('#txtEmail', { visible: true });
         await page.click('#txtEmail');
@@ -132,30 +127,60 @@ export default async function simulation(data) {
         await page.click('#txtSistema_Amortizacao_Simulacao');
         await page.select('#txtSistema_Amortizacao_Simulacao', data.amortization); // SAC OU PRICE
 
-        await page.click('#txtValorImovelCGI'); // foca no campo
+        await page.click('#txtValorImovelCGI');
         await page.type('#txtValorImovelCGI', data.property_value, { delay: 50 });
 
-        await page.click('#txtValorFinanciamentoCGI'); // foca no campo
+        await page.click('#txtValorFinanciamentoCGI');
         await page.type('#txtValorFinanciamentoCGI', data.input_value, { delay: 50 });
+        await page.click('#txtPrazoMesesCGI');
 
-        await page.click('#txtPrazoMesesCGI'); // foca no campo
-        await page.type('#txtPrazoMesesCGI', String(data.financing_term));
-        await page.click('#txtValorFinanciamentoCGI'); // ou outro seletor visível da página
-
-        await page.waitForSelector('.bootbox.modal', { visible: true });
-        const modalText = await page.$eval('.bootbox-body', el => el.textContent);
-        if (modalText.includes('prazo máximo para o seu financiamento')) {
-          // Clica no botão OK do modal
-          await page.click('button[data-bb-handler="ok"]');
+        try {
+          const modalBody = await page.waitForSelector('.bootbox-body', { timeout: 3000 });
+          const text = await modalBody.evaluate(el => el.textContent.trim());
+        
+          console.log('⚠️ Modal detectado com mensagem:', text);
+        
+          if (
+            text.includes('prazo máximo para o seu financiamento') ||
+            text.includes('valor mínimo de financiamento') ||
+            text.includes('valor mínimo')
+          ) {
+            await page.click('button[data-bb-handler="ok"]');
+            console.log('✅ Modal fechado');
+          }
+        } catch (e) {
+          console.log('ℹ️ Nenhum modal apareceu. Seguindo...');
         }
+
+        await page.click('#txtPrazoMesesCGI');
+        await page.type('#txtPrazoMesesCGI', String(data.financing_term));
+        await page.click('#txtValorFinanciamentoCGI');
+
+        try {
+          const modalBody = await page.waitForSelector('.bootbox-body', { timeout: 3000 });
+          const text = await modalBody.evaluate(el => el.textContent.trim());
+        
+          console.log('⚠️ Modal detectado com mensagem:', text);
+        
+          if (
+            text.includes('prazo máximo para o seu financiamento') ||
+            text.includes('valor mínimo de financiamento') ||
+            text.includes('valor mínimo')
+          ) {
+            await page.click('button[data-bb-handler="ok"]');
+            console.log('✅ Modal fechado');
+          }
+        } catch (e) {
+          console.log('ℹ️ Nenhum modal apareceu. Seguindo...');
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 100));
+        let valorAtual = await page.$eval('#txtPrazoMesesCGI', el => parseInt(el.value));
 
         if (data.iof){
           const checkboxSelector = '#chqFinanciarIOF';
-
-          // Verifica se já está marcado
           const isChecked = await page.$eval(checkboxSelector, el => el.checked);
 
-          // Marca se ainda não estiver
           if (!isChecked) {
             await page.click(checkboxSelector);
           }
@@ -170,13 +195,12 @@ export default async function simulation(data) {
           await page.click('#Somar_rendaN');
         }
 
-        await page.click('#btnSimular'); // foca no campo
+        await page.click('#btnSimular');
         await new Promise(resolve => setTimeout(resolve, 1000));
         await page.waitForSelector('#botao_detalhes', { visible: true });
         await page.click('#botao_detalhes');
         await page.waitForSelector('#frmSimulacaonovo', { visible: true });
 
-        // Lê os dados antes de clicar no botão PDF
         const dados = await page.evaluate(() => {
           const spans = document.querySelectorAll('#frmSimulacaonovo .class_texto2_novo');
           console.log(spans);
@@ -226,31 +250,44 @@ export default async function simulation(data) {
           
           return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result.split(',')[1]); // Remove prefixo data:application/pdf;base64,
+            reader.onloadend = () => resolve(reader.result.split(',')[1]);
             reader.onerror = reject;
             reader.readAsDataURL(blob);
           });
         });
 
-        // const buffer = Buffer.from(pdfBase64, 'base64');
-        // fs.writeFileSync(data.type_produt + '_' + data.cpf + '_simulacao.pdf', buffer);
-        // console.log('✅ PDF salvo como simulacao.pdf');
         await page.click('.bootbox-close-button.close');
-        await page.click('#btnPreencherProposta2'); // foca no campo
+        await page.click('#btnPreencherProposta2');
 
         await page.waitForSelector('#EstadoImovel', { visible: true });
         await page.click('#EstadoImovel');
-        await page.select('#EstadoImovel', data.state_property); // nome completo do estado
+        await page.select('#EstadoImovel', data.state_property);
 
         await page.click('#Nacionalidade_Principal');
-        await page.select('#Nacionalidade_Principal', "BRASILEIRO"); // nome completo do estado
+        await page.select('#Nacionalidade_Principal', "BRASILEIRO");
 
         await page.click('#Sistema_Amortizacao');
-        await page.select('#Sistema_Amortizacao', data.amortization); // SAC OU MIX
+        await page.select('#Sistema_Amortizacao', data.amortization);
 
         await page.waitForSelector('#CEP_Principal', { visible: true });
         await page.click('#CEP_Principal');
         await page.type('#CEP_Principal', data.zip_code);
+
+        await page.waitForSelector('#Endereco_Principal', { visible: true });
+        await page.click('#Endereco_Principal');
+        await page.type('#Endereco_Principal', data.street);
+
+        await page.waitForSelector('#Bairro_Principal', { visible: true });
+        await page.click('#Bairro_Principal');
+        await page.type('#Bairro_Principal', data.neighborhood);
+
+        await page.waitForSelector('#Cidade_Principal', { visible: true });
+        await page.click('#Cidade_Principal');
+        await page.type('#Cidade_Principal', data.city);
+
+        await page.waitForSelector('#UF_Principal', { visible: true });
+        await page.click('#UF_Principal');
+        await page.type('#UF_Principal', data.state);
 
         await page.waitForSelector('#Numero_End_Principal', { visible: true });
         await page.click('#Numero_End_Principal');
@@ -297,7 +334,7 @@ export default async function simulation(data) {
   
           await page.waitForSelector('#Data_Nasc_Conjuge', { visible: true });
           await page.click('#Data_Nasc_Conjuge');
-          await page.type('#Data_Nasc_Conjuge', data.spouse.birth_date); // 'd/m/Y
+          await page.type('#Data_Nasc_Conjuge', data.spouse.birth_date);
         }
 
         if (
@@ -312,40 +349,71 @@ export default async function simulation(data) {
         await page.select('#cmbPDVParceiro', '4947');
         await page.click('input[name="contato_proposta"][value="false"]');
 
-        await page.click('#btnEnviarDados'); // foca no campo
+        await page.click('#btnEnviarDados');
 
         const btn = await page.$('.btn-warning');
         if (btn) {
           const isVisible = await btn.boundingBox() !== null;
           if (isVisible) {
             await btn.click();
-            await page.click('#btnEnviarDados'); // foca no campo
+            await page.click('#btnEnviarDados');
           } else {
             console.log('⚠️ Botão de aviso não visível ou clicável — nenhuma ação tomada.');
           }
         }
         await new Promise(resolve => setTimeout(resolve, 10000));
-        await page.click('#btnConfirmardados'); // foca no campo
-        await new Promise(resolve => setTimeout(resolve, 10000));
-        
+        await page.click('#btnConfirmardados');
+        await new Promise(resolve => setTimeout(resolve, 20000));
+        console.log(pdfBase64);
         const numeroProposta = await page.$eval('#lblNumeroProposta', el => el.textContent.trim());
         console.log('Número da proposta:', numeroProposta);
 
         await page.click('#btnconsultanovamente');
         console.log('✅ Botão "Ir para acompanhamento" clicado com sucesso.');
         await new Promise(resolve => setTimeout(resolve, 10000));
+        let statusProposta= 'em_analise_credito';
+        let spanStatusProposta= 'em_analise_credito';
+        let motivoRecusa= 'A proposta está em análise de crédito. Tente novamente mais tarde.';
 
-        const statusProposta = await page.$eval('#spanFaseStatusProposta', el => el.textContent.trim());
-        console.log('Status da proposta:', statusProposta);
-        const spanStatusProposta = await page.$eval('#spanStatusProposta', el => el.textContent.trim());
-        console.log('Status da proposta:', spanStatusProposta);
-        const motivoRecusa = await page.$eval('#MotivoRecusa', el => el.textContent.trim());
-        console.log('Status da proposta:', motivoRecusa);
+        if (currentURL.includes('/erro/Error500.html')) {
+          console.log(`⚠️ Proposta ${numeroProposta} em análise de crédito (URL de erro 500 detectada).`);
+          response = {
+            Proposta: numeroProposta,
+            File64: pdfBase64,
+            StatusFaseProposta: statusProposta,
+            Status: spanStatusProposta,
+            Motivo: motivoRecusa,
+            valorPrimeiraParcela: dados.valorPrimeiraParcela,
+            somatorioParcelas: dados.totalAPagar,
+            custosAdicionais: dados.valor - data.inputValue,
+            valorTotalFinanciamento: dados.valor,
+            cesh: dados.cetMensal,
+            taxaJuros: dados.txMenal,
+            term: valorAtual,
+            amortization: data.amortization,
+            tr: "TR"
+          };
+          
+          await browser.close();
+          return {
+            status: true,
+            response,
+          };
+        }
+
+        try{
+          statusProposta = await page.$eval('#spanFaseStatusProposta', el => el.textContent.trim());
+          spanStatusProposta = await page.$eval('#spanStatusProposta', el => el.textContent.trim());
+          motivoRecusa = await page.$eval('#spanMotivoRecusa', el => el.textContent.trim());
+          console.log('Status da proposta:', statusProposta, spanStatusProposta, motivoRecusa);  
+        } catch (error) {
+            console.error('❌ Erro ao pegar status:', error);
+        }
         const inputValue = parseFloat(data.input_value);
         response = {
-          Proposta: numeroProposta, // variável numeroProposta deve ser definida anteriormente
+          Proposta: numeroProposta,
           File64: pdfBase64,
-          StatusFaseProposta: statusProposta, // variável statusProposta deve ser definida anteriormente
+          StatusFaseProposta: statusProposta,
           Status: spanStatusProposta,
           Motivo: motivoRecusa,
           valorPrimeiraParcela: dados.valorPrimeiraParcela,
@@ -354,6 +422,8 @@ export default async function simulation(data) {
           valorTotalFinanciamento: dados.valor,
           cesh: dados.cetMensal,
           taxaJuros: dados.txMenal,
+          term: valorAtual,
+          amortization: data.amortization,
           tr: "TR"
         };
         await page.click('#logoff-action');
@@ -410,39 +480,37 @@ export default async function simulation(data) {
 
         await page.click('#taxa_padrao');
 
-        await page.click('#txtValorImovel'); // foca no campo
+        await page.click('#txtValorImovel');
         await page.type('#txtValorImovel', data.property_value, { delay: 50 });
 
         for (const selector of selectors) {
           const btn = await page.$(selector);
           if (btn) {
             await btn.click();
-            break; // Clicou no primeiro botão que aparecer, então para
+            break;
           }
         }
 
-        await page.click('#txtValorEntrada'); // foca no campo
+        await page.click('#txtValorEntrada');
         await page.type('#txtValorEntrada', data.input_value, { delay: 50 });
 
         if (data.itbi){
           await page.click('#chqFinanciarITBI');
-          await page.click('#ValorITBI'); // foca no campo
+          await page.click('#ValorITBI');
           await page.type('#ValorITBI', '5');
         }
 
-        await page.click('#txtPrazoMeses'); // foca no campo
-        // await page.type('#txtPrazoMeses', data.financing_term);
+        await page.click('#txtPrazoMeses');
 
         for (const selector of selectors) {
           const btn = await page.$(selector);
           if (btn) {
             await btn.click();
-            break; // Clicou no primeiro botão que aparecer, então para
+            break;
           }
         }
 
-        //Click botão criar proposta:
-        await page.click('#btnSimular'); // foca no campo
+        await page.click('#btnSimular');
         await new Promise(resolve => setTimeout(resolve, 1000));
         await page.waitForSelector('#btnGerarPDF_divDadosParcelas', { visible: true });
         const valorPrimeiraParcela = await page.$eval('#lblValorPrimeiraParcela', el => el.textContent.trim());
@@ -453,7 +521,7 @@ export default async function simulation(data) {
         const cesh = await page.$eval('#colCESH', el => el.textContent.trim());
         const tr = await page.$eval('#colCorrecaoMonetaria', el => el.textContent.trim());
         const linhaCredito = await page.$eval('#colLinhaCredito', el => el.textContent.trim());
-        await page.click('#btnGerarPDF_divDadosParcelas'); // foca no campo
+        await page.click('#btnGerarPDF_divDadosParcelas');
 
         await page.waitForSelector('iframe[src^="blob:"]');
 
@@ -465,24 +533,21 @@ export default async function simulation(data) {
           
           return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result.split(',')[1]); // Remove prefixo data:application/pdf;base64,
+            reader.onloadend = () => resolve(reader.result.split(',')[1]);
             reader.onerror = reject;
             reader.readAsDataURL(blob);
           });
         });
-
-        // const buffer = Buffer.from(pdfBase64, 'base64');
-        // fs.writeFileSync(data.type_produt + '_' + data.cpf + '_simulacao.pdf', buffer);
       
         console.log('✅ PDF salvo como simulacao.pdf');
         await page.click('.bootbox-close-button.close');
 
-        await page.click('#btnPreencherProposta'); // foca no campo
+        await page.click('#btnPreencherProposta');
 
         await page.click('#Sistema_Amortizacao');
         await page.select('#Sistema_Amortizacao', 'SAC'); // SAC OU MIX
         await page.click('#EstadoImovel');
-        await page.select('#EstadoImovel', data.state_property); // nome completo do estado
+        await page.select('#EstadoImovel', data.state_property);
         await page.click('#taxa_padrao');
 
         await page.click('#Tipo_Renda_Principal');
@@ -498,7 +563,7 @@ export default async function simulation(data) {
         await page.click('input[name="contato_proposta"][value="false"]');
 
         await page.waitForSelector('#Prazo_Financiamento', { visible: true });
-        const valorAtual = await page.$eval('#Prazo_Financiamento', el => parseInt(el.value));
+        let valorAtual = await page.$eval('#Prazo_Financiamento', el => parseInt(el.value));
         await page.click('#Prazo_Financiamento', { clickCount: 3 });
         await page.keyboard.press('Backspace');
         await page.type('#Prazo_Financiamento', String(valorAtual + 5));
@@ -508,44 +573,35 @@ export default async function simulation(data) {
           const btn = await page.$(selector);
           if (btn) {
             await btn.click();
-            break; // Clicou no primeiro botão que aparecer, então para
+            break;
           }
         }
+        await new Promise(resolve => setTimeout(resolve, 100));
+        valorAtual = await page.$eval('#Prazo_Financiamento', el => parseInt(el.value));
 
-        await page.click('#btnEnviarDados'); // foca no campo
+        await page.click('#btnEnviarDados');
         await new Promise(resolve => setTimeout(resolve, 10000));
         await page.waitForSelector('#chqScr', { visible: true });  
-        await page.click('#chqScr'); // foca no campo
-        await page.click('#btnConfirmardados'); // foca no campo
+        await page.click('#chqScr');
+        await page.click('#btnConfirmardados');
 
         const modalSelector = '.bootbox.modal.fade.bootbox-alert.in';
 
-        // Aguarda até o modal de erro aparecer (no máximo 5 segundos)
         try {
           await page.waitForSelector(modalSelector, { visible: true, timeout: 5000 });
-        
-          // Clica no botão "OK"
           await page.click('.bootbox .btn-warning');
-        
-          // Espera o modal desaparecer
           await page.waitForSelector(modalSelector, { hidden: true });
-        
-          // Depois clica novamente no botão de confirmação
           await page.click('#btnConfirmardados');
         } catch (error) {
           console.log('⚠️ Modal de erro não apareceu, continuando...');
         }
         
-        // Checa se o modal de sucesso apareceu
         const successModalSelector = '.bootbox.modal.fade.in';
         try {
           await page.waitForSelector(successModalSelector, { visible: true, timeout: 5000 });
-        
-          // Espera o conteúdo do modal de pesquisa
           const surveyModalSelector = '.bootbox .modal-body h5#subTituloPesquisaDeSatisfacao';
           await page.waitForSelector(surveyModalSelector, { visible: true, timeout: 3000 });
-        
-          // Clica no botão "Fechar"
+
           await page.click('.bootbox .modal-footer .btn-default');
         
           console.log('✅ Modal de pesquisa de satisfação fechado.');
@@ -565,24 +621,57 @@ export default async function simulation(data) {
         const numeroProposta = await page.$eval('#lblNumeroProposta', el => el.textContent.trim());
         console.log('Número da proposta:', numeroProposta);
 
-        await new Promise(resolve => setTimeout(resolve, 10000));
-
-        // Clica no botão de busca (ícone de lupa)
         await page.click('.fa-search');
         await page.waitForSelector('#numeroProposta', { visible: true });
         await page.click('#numeroProposta');
-        await page.type('#numeroProposta', numeroProposta); // ou qualquer número
-        await page.click('#btnConsultarProposta');
-        const statusProposta = await page.$eval('#spanFaseStatusProposta', el => el.textContent.trim());
-        console.log('Status da proposta:', statusProposta);
-        const spanStatusProposta = await page.$eval('#spanStatusProposta', el => el.textContent.trim());
-        console.log('Status da proposta:', spanStatusProposta);
-        const motivoRecusa = await page.$eval('#MotivoRecusa', el => el.textContent.trim());
-        console.log('Status da proposta:', motivoRecusa);
+        await page.type('#numeroProposta', numeroProposta);
+        page.click('#btnConsultarProposta');
+
+        await new Promise(resolve => setTimeout(resolve, 10000));
+        let statusProposta= 'em_analise_credito';
+        let spanStatusProposta= 'em_analise_credito';
+        let motivoRecusa= 'A proposta está em análise de crédito. Tente novamente mais tarde.';
+        
+        const currentURL = page.url();
+        if (currentURL.includes('/erro/Error500.html')) {
+          console.log(`⚠️ Proposta ${numeroProposta} em análise de crédito (URL de erro 500 detectada).`);
+          response = {
+            Proposta: numeroProposta,
+            File64: pdfBase64,
+            StatusFaseProposta: statusProposta,
+            Status: spanStatusProposta,
+            Motivo: motivoRecusa,
+            valorPrimeiraParcela: valorPrimeiraParcela,
+            somatorioParcelas: somatorioParcelas,
+            custosAdicionais: custosAdicionais,
+            valorTotalFinanciamento: valorTotalFinanciamento,
+            cesh: cesh,
+            taxaJuros: taxaJuros,
+            term: valorAtual,
+            amortization: data.amortization,
+            tr: linhaCredito + " - " + tr
+          };
+
+          await browser.close();
+          return {
+            status: true,
+            response,
+          };
+        }
+
+        try{
+          statusProposta = await page.$eval('#spanFaseStatusProposta', el => el.textContent.trim());
+          spanStatusProposta = await page.$eval('#spanStatusProposta', el => el.textContent.trim());
+          motivoRecusa = await page.$eval('#spanMotivoRecusa', el => el.textContent.trim());
+          console.log('Status da proposta:', statusProposta, spanStatusProposta, motivoRecusa);  
+        } catch (error) {
+            console.error('❌ Erro ao pegar status:', error);
+        } 
+
         response = {
-          Proposta: numeroProposta, // variável numeroProposta deve ser definida anteriormente
+          Proposta: numeroProposta,
           File64: pdfBase64,
-          StatusFaseProposta: statusProposta, // variável statusProposta deve ser definida anteriormente
+          StatusFaseProposta: statusProposta,
           Status: spanStatusProposta,
           Motivo: motivoRecusa,
           valorPrimeiraParcela: valorPrimeiraParcela,
@@ -591,6 +680,8 @@ export default async function simulation(data) {
           valorTotalFinanciamento: valorTotalFinanciamento,
           cesh: cesh,
           taxaJuros: taxaJuros,
+          term: valorAtual,
+          amortization: data.amortization,
           tr: linhaCredito + " - " + tr
         };
         await page.click('#logoff-action');
@@ -600,7 +691,6 @@ export default async function simulation(data) {
     }
     
     await browser.close();
-
     return {
       status: true,
       response,
