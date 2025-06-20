@@ -12,6 +12,8 @@ import { OLEApproval } from './controllers/Approval/OLE.js';
 import { ItauFinancial } from './controllers/Financial/Itaú.js';
 import { ItauImovelFinancial } from './controllers/Financial/ItauImovelController.js'
 import { ItauImovelStatus } from './controllers/Financial/ItauImovelStatusController.js';
+import { BradescoImovelFinancial } from './controllers/Financial/BradescoImovelController.js';
+import { BradescoImovelStatus } from './controllers/Financial/BradescoImovelStatusController.js';
 
 const upload = multer({ dest: 'uploads/' });
 const router = express.Router();
@@ -138,5 +140,7 @@ router.post("/api/consult/aprovacao/ole/proposal", OLEApproval);
 router.post("/api/financiamento/itau", ItauFinancial);
 router.post("/api/financiamento/itau/imoveis", ItauImovelFinancial);
 router.get("/api/financiamento/itau/imoveis/status", ItauImovelStatus);
+router.post("/api/financiamento/bradesco/imoveis", BradescoImovelFinancial);
+router.get("/api/financiamento/bradesco/imoveis/status", BradescoImovelStatus);
 
 export default router;

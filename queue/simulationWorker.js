@@ -1,6 +1,7 @@
 import { Worker } from 'bullmq';
 import IORedis from 'ioredis';
 import itauSimulation from '../app/services/Financiamento/ItauImovel/index.js';
+import bradescoSimulation from '../app/services/Financiamento/BradescoImovel/index.js';
 
 const connection = new IORedis({
   host: 'redis',
@@ -18,6 +19,11 @@ const worker = new Worker('jobQueueSimulation', async (job) => {
       case 'itau':
         result = await itauSimulation(job.data);
         break;
+
+      case 'bradesco':
+        result = await bradescoSimulation(job.data);
+        break;
+
       default:
         throw new Error(`Banco "${job.data.bank}" não suportado.`);
     }
