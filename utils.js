@@ -74,8 +74,8 @@ export async function awaitElement(page, selector) {
     }
 }
 
-export async function getElementTextByXpath(page, xpath) {
-    const element = await page.$(`::-p-xpath(${xpath})`);
+export async function getElementTextByXpath(page, xpath, timeout = 5000) {
+    const element = await getElementByXpath(page, xpath, timeout);
     return element.evaluate(el => el.textContent);
 }
 
@@ -99,4 +99,20 @@ export function replaceValues(value) {
         let newValue = value.replace(/\./g, '');
         return newValue.replace(/,/g, '.');
     }
+}
+
+export async function typeByXpath(page, xpath, value, timeout = 5000) {
+    const element = await page.waitForSelector(`::-p-xpath(${xpath})`, { timeout });
+    await element.click({ clickCount: 3 });
+    await element.press("Backspace");
+
+    for (const char of value) {
+        await element.type(char, { delay: 100 });
+        await sleep(50);
+    }
+}
+
+export async function getElementByXpath(page, xpath, timeout = 5000) {
+    const element = await page.waitForSelector(`::-p-xpath(${xpath})`, { timeout });
+    return element;
 }

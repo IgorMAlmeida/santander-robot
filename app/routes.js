@@ -10,6 +10,8 @@ import { DaycovalApproval } from './controllers/Approval/Daycoval.js';
 import { FactaApproval } from './controllers/Approval/Facta.js';
 import { OLEApproval } from './controllers/Approval/OLE.js';
 import { ItauFinancial } from './controllers/Financial/Itaú.js';
+import { Biometrics } from './controllers/Biometrics/index.js';
+import { FactaSRCC } from './controllers/SRCC/Facta.js';
 
 const upload = multer({ dest: 'uploads/' });
 const router = express.Router();
@@ -39,6 +41,7 @@ router.post('/api/consult/proposal', async (req, res) => {
             throw new Error('Nenhuma proposta informada');
         }
 
+        console.log(req?.body?.proposals);
         const response = await ProposalConsult(req?.body?.proposals);
 
         if (!response.status) {
@@ -135,5 +138,8 @@ router.post("/api/consult/aprovacao/ole/proposal", OLEApproval);
 
 router.post("/api/financiamento/itau", ItauFinancial);
 
+router.post("/api/consult/srcc/facta", FactaSRCC);
+
+router.post("/api/consult/biometrics", Biometrics);
 
 export default router;
