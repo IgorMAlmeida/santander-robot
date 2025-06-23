@@ -12,6 +12,10 @@ import { OLEApproval } from './controllers/Approval/OLE.js';
 import { ItauFinancial } from './controllers/Financial/Itaú.js';
 import { Biometrics } from './controllers/Biometrics/index.js';
 import { FactaSRCC } from './controllers/SRCC/Facta.js';
+import { ItauImovelFinancial } from './controllers/Financial/ItauImovelController.js'
+import { ItauImovelStatus } from './controllers/Financial/ItauImovelStatusController.js';
+import { BradescoImovelFinancial } from './controllers/Financial/BradescoImovelController.js';
+import { BradescoImovelStatus } from './controllers/Financial/BradescoImovelStatusController.js';
 
 const upload = multer({ dest: 'uploads/' });
 const router = express.Router();
@@ -41,8 +45,11 @@ router.post('/api/consult/proposal', async (req, res) => {
             throw new Error('Nenhuma proposta informada');
         }
 
-        console.log(req?.body?.proposals);
-        const response = await ProposalConsult(req?.body?.proposals);
+        if (!req?.body?.file_id) {
+            throw new Error("O ID do arquivo não foi informado");
+        }
+
+        const response = await ProposalConsult(req?.body?.file_id, req?.body?.proposals);
 
         if (!response.status) {
             throw new Error(response.response);
@@ -141,5 +148,9 @@ router.post("/api/financiamento/itau", ItauFinancial);
 router.post("/api/consult/srcc/facta", FactaSRCC);
 
 router.post("/api/consult/biometrics", Biometrics);
+router.post("/api/financiamento/itau/imoveis", ItauImovelFinancial);
+router.get("/api/financiamento/itau/imoveis/status", ItauImovelStatus);
+router.post("/api/financiamento/bradesco/imoveis", BradescoImovelFinancial);
+router.get("/api/financiamento/bradesco/imoveis/status", BradescoImovelStatus);
 
 export default router;
