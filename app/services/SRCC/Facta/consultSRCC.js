@@ -1,5 +1,5 @@
 import ac from "@antiadmin/anticaptchaofficial";
-import { clickElementByXpath, getElementByXpath, getElementTextByXpath, sleep, typeByXpath } from "../../../../utils.js";
+import { clickElementByXpath, getElementByXpath, sleep, typeByXpath } from "../../../../utils.js";
 import dotenv from 'dotenv';
 dotenv.config();
 

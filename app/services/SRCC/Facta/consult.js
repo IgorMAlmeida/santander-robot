@@ -8,18 +8,18 @@ export async function consult(page, person, registration) {
     const hasSRCC = await consultSRCC(page, person.cpf, registration);
 
     if (hasSRCC) {
-      if(person?.postBack) {
+      if(!person?.postBack) {
         await APIService.post(person.postBack.url, person.postBack.headers, {
-          srcc: "Sim",
+          srcc: "S",
         });
       }
 
       throw new Error("Proposta possui registro de SRCC");
     }
   
-    if(person?.postBack) {
+    if(!person?.postBack) {
       await APIService.post(person.postBack.url, person.postBack.headers, {
-        srcc: "Não",
+        srcc: "N",
       });
     }
 

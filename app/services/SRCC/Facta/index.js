@@ -1,46 +1,108 @@
 import { initialize } from "../../Approval/InitializePuppeteer.js";
 import { login } from "./login.js";
-import { consult } from "./consult.js";
-import getRegistration from "./getRegistration.js";
+import { formatCpf } from "../../../utils/formatter.js";
+import sendConsult from "./sendConsult.js";
+import getConsult from "./getConsult.js";
+import getRegistrations from "./getRegistrations.js";
+import ac from "@antiadmin/anticaptchaofficial";
+import dotenv from "dotenv";
+import APIService from "../../Approval/APIService.js";
+dotenv.config();
 
 export default async function srcc(people) {
   let { page, browser } = await initialize();
 
-  await login(page);
-
-  let result = [];
-
-  for (const person of people) {
-    try {
-      const formattedCpf = person.cpf.replace(/\D/g, "");
-      const registration = await getRegistration(formattedCpf);
-
-      if (!registration) {
-        throw new Error("Matricula não encontrada");
-      }
-
-      const consultResult = await consult(page, person, registration);
-
-      result.push({
-        cpf: person.cpf,
-        srcc: consultResult.data,
-      });
-    } catch (error) {
-      result.push({
-        cpf: person.cpf,
-        error: error.message,
-      });
-
-      await browser.close();
-      let recreate = await initialize();
-      page = recreate.page;
-      browser = recreate.browser;
+  try {
+    const loginResult = await login(page);
+    
+    if (!loginResult.status) {
+      throw new Error(`Falha no login: ${loginResult.data}`);
     }
+    
+    const cookie = await page.evaluate(() => {
+      return document.cookie;
+    });
+    
+    const peopleWithRegistrations = await processRegistrations(people);
 
-    console.log(`Processou a pessoa ${person.cpf}`);
+    await sendConsults(peopleWithRegistrations, cookie);
+
+    await browser.close();
+
+    return await verifySRCC(peopleWithRegistrations, cookie);
+  } catch (error) {
+    await browser.close();
+    throw error;
+  }
+}
+
+async function processRegistrations(people) {
+  const peopleNeedingRegistration = people.filter(person => !person?.registration);
+  
+  if (peopleNeedingRegistration.length === 0) {
+    return people;
   }
 
-  await browser.close();
+  const registrations = await getRegistrations(
+    peopleNeedingRegistration.map((person) => person.cpf)
+  );
 
-  return result;
+  const peopleWithRegistrations = peopleNeedingRegistration.map((person) => {
+    return {
+      ...person,
+      registration: registrations[person.cpf],
+    };
+  });
+
+  return [...people.filter(person => person.registration), ...peopleWithRegistrations];
+}
+
+async function sendConsults(people, cookie) {
+  const websiteKey = "6LefgIEcAAAAAMlY8s_hpgHPtYqhNmZ_Fu-DJDVg";
+  ac.setAPIKey(process.env.ANTICAPTCHA_KEY);
+  ac.setSoftId(0);
+  const gresponse = await ac.solveRecaptchaV2Proxyless(
+    "https://desenv.facta.com.br/sistemaNovo/consultaSrcc.php",
+    websiteKey
+  );
+
+  for (const person of people) {
+    const formattedCpf = formatCpf(person.cpf);
+
+    if (!person.registration) {
+      continue;
+    }
+
+    await sendConsult(formattedCpf, person.registration, cookie, gresponse);
+  }
+}
+
+async function verifySRCC(people, cookie) {
+  const consults = await getConsult(cookie);
+
+  const response = [];
+  for (const person of people) {
+    const consult = consults.find(consult => formatCpf(consult.cpf) === formatCpf(person.cpf));
+
+    if (!consult) {
+      continue;
+    }
+
+    const data = {
+      cpf: person.cpf,
+      srcc: consult.status !== "Operação passível de comissão",
+    };
+
+    await APIService.post(
+      process.env.FACTA_SRCC_POSTBACK_URL,
+      {
+        "Content-Type": "application/json",
+        "ROBOT-KEY": process.env.FACTA_SRCC_POSTBACK_ROBOT_KEY,
+      },
+      data
+    );
+    response.push(data);
+  }
+
+  return response;
 }
