@@ -12,7 +12,7 @@ export async function login(page, credentials) {
     username: credentials.username,
     bankName: 'C6'
   });
-  
+
   try {
     const url = process.env.C6_APROVACAO_URL;
     logger.debug("URL de login do C6", { url });
@@ -27,7 +27,7 @@ export async function login(page, credentials) {
       url,
       waitUntil: 'networkidle0'
     });
-    
+
     const navigationStartTime = Date.now();
     await page.goto(url, { waitUntil: "networkidle0" });
     const navigationEndTime = Date.now();
@@ -61,7 +61,7 @@ export async function login(page, credentials) {
     logger.debug("Digitando senha");
     const password = credentials.password;
     await page.type('::-p-xpath(//*[@id="ESenha_CAMPO"])', password);
-    
+
     logger.debug("Clicando no botão de login", {
       xpath: '//*[@id="lnkEntrar"]'
     });
@@ -74,10 +74,15 @@ export async function login(page, credentials) {
         dialogType: dialog.type(),
         dialogMessage
       });
-      await dialog.accept();
-      logger.debug(`Diálogo aceito automaticamente`);
+      
+      try {
+        await dialog.accept();
+        logger.debug(`✅ Diálogo aceito automaticamente`);
+      } catch (error) {
+        logger.warn(`⚠️ Diálogo já tratado ou erro ao aceitar: ${error.message}`);
+      }
     });
-  
+
     logger.debug("Aguardando navegação após login", {
       waitUntil: 'networkidle0'
     });
@@ -127,11 +132,10 @@ export async function login(page, credentials) {
       url: page.url(),
       pageTitle: await page.title().catch(() => 'Não disponível')
     });
-    
+
     return {
       status: false,
       data: error.message
     };
   }
 }
-

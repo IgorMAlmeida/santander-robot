@@ -2,7 +2,7 @@ import { Queue } from 'bullmq';
 import IORedis from 'ioredis';
 
 const connection = new IORedis({
-  host: 'redis',
+  host: 'localhost',
   port: 6379,
 });
 

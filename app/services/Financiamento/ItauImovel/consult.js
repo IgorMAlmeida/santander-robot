@@ -11,52 +11,12 @@ export default async function consult(data) {
   
     const pagesBefore = await browser.pages();
     const page = pagesBefore[0];
-
-    let response = "Teste";
-    const username = process.env.ITAU_IMOVEL_LOGIN || 'juliana.soares@credifranco.com.br';
-    const password = process.env.ITAU_IMOVEL_PASS_LOGIN || 'Sucesso@2024';
     const ITAU_IMOVEL_URL = (process.env.ITAU_IMOVEL_URL || 'https://plataformaitauimoveis.cloud.itau.com.br/Portal/').replace(/"/g, '').trim();
-    console.log("🔗 Acessando:", ITAU_IMOVEL_URL);
 
     await page.goto(ITAU_IMOVEL_URL, { waitUntil: "domcontentloaded" });
-    console.log("📄 Página carregada");
-
-    await page.waitForSelector('input[name="txtUsuario"]', { timeout: 10000 });
-    console.log("🟢 Campo de e-mail localizado");
-    await page.type('input[name="txtUsuario"]', username);
-
-    await page.waitForSelector('input[name="txtSenha"]', { timeout: 10000 });
-    console.log("🟢 Campo de senha localizado");
-    await page.type('input[name="txtSenha"]', password);
-
-    try {
-      await page.waitForSelector('#btnEntrar', { timeout: 10000 });
-      console.log("🟢 Botão de login localizado");
-    
-      let navigationDetected = false;
-      page.on('framenavigated', frame => {
-        const url = frame.url();
-        if (url.includes('/Portal/pages')) {
-          console.log("🌐 Navegação detectada para:", url);
-          navigationDetected = true;
-        }
-      });
-
-      const navigationPromise = page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 55000 });
-      await page.click('#btnEntrar');
-      console.log("🔐 Login enviado.");
-    
-      await navigationPromise;
-      console.log("🔄 Página redirecionada após login.");
-    } catch (navErr) {
-      const erroLogin = await page.$('.erroLogin, .mensagemErro, .alert-danger');
-      if (erroLogin) {
-        const mensagem = await page.evaluate(el => el.innerText, erroLogin);
-        throw new Error(`❌ Falha no login: ${mensagem}`);
-      } else {
-        throw new Error(`❌ Login possivelmente falhou: sem redirecionamento detectado.`);
-      }
-    }
+    console.log("📄 Página carregada: ", ITAU_IMOVEL_URL);
+ 
+    await loginItauImovel(page);
 
     try {
       await page.waitForSelector('#btnOk0', { visible: true, timeout: 30000 });

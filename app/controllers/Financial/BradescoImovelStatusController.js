@@ -8,7 +8,7 @@ export async function BradescoImovelStatus(req, res) {
     const job = await simulationQueue.getJob(jobId);
     let newJobId = 0;
     const state = await job.getState(simulationQueue, job.id);
-    const result = job.returnvalue ?? null;
+    let result = job.returnvalue ?? null;
     if (state === 'failed' || (state === 'completed' && result == 'Teste')) {
         console.log(`O job ${jobId} falhou, reiniciando...`);
         
@@ -18,6 +18,7 @@ export async function BradescoImovelStatus(req, res) {
     
         console.log(`Novo job adicionado com ID: ${newJob.id}`);
         newJobId = newJob.id;
+        result = newJobId;
     } else if (state === 'completed') {
         const dados = await consult(result.Proposta);
         result.StatusFaseProposta = dados.response.StatusFaseProposta;

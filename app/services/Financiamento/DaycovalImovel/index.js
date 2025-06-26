@@ -1,6 +1,6 @@
-import loginBradescoImovel from "./login.js";
+import loginDaycovalImovel from "./login.js";
 import { convertToNumber, typeInput, selectAndPostback, selectClick, extractSimulationResult, clickAndSavePdfBase64, getUFCode,
-    typeAndSubmitWithValidation, typeAndSubmitWithMaxCheck, typeAndSubmitIntegerWithMaxCheck } from "./bradescoUtils.js";
+    typeAndSubmitWithValidation, typeAndSubmitWithMaxCheck, typeAndSubmitIntegerWithMaxCheck } from "./utils.js";
 import validate from "./validate.js";
 import puppeteer from "puppeteer-extra";
 
@@ -25,12 +25,24 @@ export default async function simulation(data) {
   
     const pagesBefore = await browser.pages();
     const page = pagesBefore[0];
-    const BRADESCO_IMOVEL_URL = (process.env.BRADESCO_IMOVEL_URL || 'https://wspf.banco.bradesco/wsImoveis/AreaRestrita/Default.aspx?ReturnUrl=%2fwsImoveis%2fAreaRestrita%2fConteudo%2fHome.aspx').replace(/"/g, '').trim();
+    const DAYCOVAL_IMOVEL_URL = (process.env.Daycoval_IMOVEL_URL || 'https://creditoimobiliario.daycoval.com.br/').replace(/"/g, '').trim();
 
-    await page.goto(BRADESCO_IMOVEL_URL, { waitUntil: "domcontentloaded" });
-    console.log("📄 Página carregada: ", BRADESCO_IMOVEL_URL);
+    await page.goto(DAYCOVAL_IMOVEL_URL, { waitUntil: "domcontentloaded" });
+    console.log("📄 Página carregada: ", DAYCOVAL_IMOVEL_URL);
 
-    await loginBradescoImovel(page);
+    await loginDaycovalImovel(page);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    await selectClick(page, '#button-1064-btnInnerEl',1000);
+    await new Promise(resolve => setTimeout(resolve, 500));
+    await selectClick(page, '#menuitem-1079-textEl',1000);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    await browser.close();
+    return {
+      status: true,
+      response,
+    };
+
     await selectClick(page, 'a[href="/wsImoveis/AreaRestrita/Conteudo/Simulacao.aspx"]',1000);
 
     try {
@@ -42,7 +54,7 @@ export default async function simulation(data) {
         throw new Error('❌ Não foi possível acessar o conteúdo do iframe.');
       }
 
-      await page.goto('https://wspf.banco.bradesco/CRIM.Imoveis/SimulacaoNew.aspx?IdParceiroUsuario=18167&IdIParceiro=14228&CNPJParceiro=13029909000114&EmailContatoParceiro=JULIANA.SOARES@CREDIFRANCO.COM.BR&NomeContatoParceiro=JULIANA%20BALESTRASSI', {
+      await page.goto('https://wspf.banco.Daycoval/CRIM.Imoveis/SimulacaoNew.aspx?IdParceiroUsuario=18167&IdIParceiro=14228&CNPJParceiro=13029909000114&EmailContatoParceiro=JULIANA.SOARES@CREDIFRANCO.COM.BR&NomeContatoParceiro=JULIANA%20BALESTRASSI', {
         waitUntil: 'domcontentloaded',
       });
       
@@ -89,7 +101,7 @@ export default async function simulation(data) {
         await selectClick(page, '#rdoFinanciarDespesas_1', 3000);
       }
 
-      if (data.amortization == 'SAC' || data.amortization == 'sac') {
+      if (data.amortization == 'SAC') {
         await selectClick(page, '#RbSistemaAmortizacaoInicio_0', 3000);
       } else {
         await selectClick(page, '#RbSistemaAmortizacaoInicio_1', 3000);
@@ -119,7 +131,7 @@ export default async function simulation(data) {
       console.log('📤 Botão "Enviar proposta - Pré-análise Completa" clicado.');
       await new Promise(resolve => setTimeout(resolve, 3000));
 
-      await selectClick(page, '#rdoCorrentistaBradesco_1', 3000);
+      await selectClick(page, '#rdoCorrentistaDaycoval_1', 3000);
       await selectClick(page, '#btnOkCPF', 100);
 
       let regex = /\((\d{2})\)(\d{5})-(\d{4})/;
@@ -172,7 +184,6 @@ export default async function simulation(data) {
             return el && el.options.length > 1;
           }, { timeout: 15000 });
 
-          await new Promise(resolve => setTimeout(resolve, 300));
           const primeiroValor = await page.$eval('#ddlCADUProfissaoOcupacao', select => {
             return select.options[1].value; // A primeira opção (não vazia) é a de índice 1
           });
@@ -180,22 +191,19 @@ export default async function simulation(data) {
 
           if (!["6", "7", "8", "9", "10", "11", "12", "13", "2", "4"].includes(data.proof_income)) {
             console.log("Entrou no cargo" + data.proof_income);
-            // await page.waitForSelector('#ddlCADUCargo');
-            // await page.waitForFunction(() => {
-            //   const el = document.querySelector('#ddlCADUCargo');
-            //   return el && el.options.length > 1;
-            // }, { timeout: 15000 });
-            await page.waitForSelector('#ddlCADUCargo');
+            await page.waitForFunction(() => {
+              const el = document.querySelector('#ddlCADUCargo');
+              return el && el.options.length > 1;
+            }, { timeout: 15000 });
 
             const primeiroValor = await page.$eval('#ddlCADUCargo', select => {
-              return select.options[1].value; // Pega a primeira opção válida
+              return select.options[1].value; // A primeira opção (não vazia) é a de índice 1
             });
             await page.select('#ddlCADUCargo', primeiroValor);
           }
 
           if (data.proof_income === "1") {
-            await new Promise(resolve => setTimeout(resolve, 700));
-            console.log("Entrou na data de admissao:" + formattedDate);
+            console.log("Entrou no cargo" + data.proof_income);
             await typeInput(page, '#txtCADUDataAdmissao',formattedDate);
           }
         }
@@ -206,12 +214,12 @@ export default async function simulation(data) {
           }
           await page.waitForSelector('#txtCADUCEP',  { visible: true, timeout: 1000 });
           await typeInput(page, '#txtCADUCEP', data.zip_code);
-          await typeInput(page, '#txtCADUEnderecoResidencial', data.street);
-          await typeInput(page, '#txtCADUNumero', data.number);
-          await typeInput(page, '$txtCADUBairro', data.neighborhood);
-          await typeInput(page, '#txtCADUMunicipio', data.city);
+          await typeInput(page, 'txtCADUEnderecoResidencial', data.street);
+          await typeInput(page, 'txtCADUNumero', data.number);
+          await typeInput(page, 'txtCADUBairro', data.neighborhood);
+          await typeInput(page, 'txtCADUMunicipio', data.city);
           await page.waitForSelector('#ddlCADUEstado', { visible: true });
-          await page.select('#ddlCADUEstado', data.idUf);
+          await page.select('ddlCADUEstado', data.idUf);
           await page.waitForSelector('#ddlCADUTipoResidencia', { visible: true });
           await page.select('#ddlCADUTipoResidencia', '4');
         } catch (error) {
@@ -264,16 +272,18 @@ export default async function simulation(data) {
             await page.select('#ddlCADUProfissaoOcupacaoSC', primeiroValor);
     
             if (!["6", "7", "8", "9", "10", "11", "12", "13", "2", "4"].includes(data.spouse.proof_income)) {
-              await page.waitForSelector('#ddlCADUCargo');
+              await page.waitForFunction(() => {
+                const el = document.querySelector('#ddlCADUCargoSC');
+                return el && el.options.length > 1;
+              }, { timeout: 15000 });
 
-              const primeiroValor = await page.$eval('#ddlCADUCargo', select => {
-                return select.options[1].value; // Pega a primeira opção válida
+              const primeiroValor = await page.$eval('#ddlCADUCargoSC', select => {
+                return select.options[1].value; // A primeira opção (não vazia) é a de índice 1
               });
-              await page.select('#ddlCADUCargo', primeiroValor);
+              await page.select('#ddlCADUCargoSC', primeiroValor);
             }
     
             if (data.proof_income === "1") {
-              await new Promise(resolve => setTimeout(resolve, 700));
               await typeInput(page, '#txtCADUDataAdmissaoSC', formattedDate);
             }
           }
@@ -285,11 +295,11 @@ export default async function simulation(data) {
           try{
             await page.waitForSelector('#txtCADUCEPSC',  { visible: true, timeout: 1000 });
             await typeInput(page, '#txtCADUCEPSC', data.zip_code);
-            await typeInput(page, '#txtCADUEnderecoResidencialSC', data.street);
-            await typeInput(page, '#txtCADUNumeroSC', data.number);
-            await typeInput(page, '#txtCADUBairroSC', data.neighborhood);
-            await typeInput(page, '#txtCADUMunicipioSC', data.city);
-            await page.select('#ddlCADUEstadoSC', data.idUf);
+            await typeInput(page, 'txtCADUEnderecoResidencialSC', data.street);
+            await typeInput(page, 'txtCADUNumeroSC', data.number);
+            await typeInput(page, 'txtCADUBairroSC', data.neighborhood);
+            await typeInput(page, 'txtCADUMunicipioSC', data.city);
+            await page.select('ddlCADUEstadoSC', data.idUf);
             await page.select('#ddlCADUTipoResidenciaSC', '4');
           } catch (error) {
             console.error('❌ Não pediu campos do endereço do cliente:', error);

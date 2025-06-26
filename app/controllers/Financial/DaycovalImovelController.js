@@ -1,8 +1,8 @@
 import ControllerResponse from '../../utils/ControllerResponse.js';
 import { simulationQueue } from '../../../queue/simulationQueue.js';
-import simulation from '../../services/Financiamento/BradescoImovel/index.js';
+import simulation from '../../services/Financiamento/DaycovalImovel/index.js';
 
-export async function BradescoImovelFinancial(req, res) {
+export async function DaycovalImovelFinancial(req, res) {
     try {
         const data = req?.body?.data;
 
@@ -18,7 +18,6 @@ export async function BradescoImovelFinancial(req, res) {
             });
         } else {
             const result = await simulation(data);
-
             if (!result.status) {
                 return ControllerResponse.error(res, result);
             }
