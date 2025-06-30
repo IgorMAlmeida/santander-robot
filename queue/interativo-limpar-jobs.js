@@ -3,7 +3,7 @@ import IORedis from 'ioredis';
 import inquirer from 'inquirer';
 
 const connection = new IORedis({
-  host: 'localhost',
+  host: process.env.REDIS_NAME_INSTANCIA,
   port: 6379,
 });
 

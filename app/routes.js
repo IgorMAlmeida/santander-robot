@@ -15,6 +15,8 @@ import { ItauImovelStatus } from './controllers/Financial/ItauImovelStatusContro
 import { BradescoImovelFinancial } from './controllers/Financial/BradescoImovelController.js';
 import { BradescoImovelStatus } from './controllers/Financial/BradescoImovelStatusController.js';
 import { JobGetList, JobGetId } from './controllers/Financial/JobGetController.js'
+import { DaycovalImovelStatus } from './controllers/Financial/DaycovalImovelStatusController.js';
+import { DaycovalImovelFinancial } from './controllers/Financial/DaycovalImovelController.js';
 
 const upload = multer({ dest: 'uploads/' });
 const router = express.Router();
@@ -145,5 +147,7 @@ router.post("/api/financiamento/itau/imoveis", ItauImovelFinancial);
 router.get("/api/financiamento/itau/imoveis/status", ItauImovelStatus);
 router.post("/api/financiamento/bradesco/imoveis", BradescoImovelFinancial);
 router.get("/api/financiamento/bradesco/imoveis/status", BradescoImovelStatus);
+router.post("/api/financiamento/daycoval/imoveis", DaycovalImovelFinancial);
+router.get("/api/financiamento/daycoval/imoveis/status", DaycovalImovelStatus);
 
 export default router;

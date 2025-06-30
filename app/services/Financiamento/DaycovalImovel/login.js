@@ -1,29 +1,28 @@
-export default async function loginBradescoImovel(page) {
-    const username = process.env.BRADESCO_IMOVEL_LOGIN || 'DCM-CREDFRANCO';
-    const password = process.env.BRADESCO_IMOVEL_PASS_LOGIN || 'cRED@2025';
+export default async function loginDaycovalImovel(page) {
+    const username = process.env.DAYCOVAL_IMOVEL_LOGIN || 'DCM-CREDFRANCO';
+    const password = process.env.DAYCOVAL_IMOVEL_PASS_LOGIN || 'cRED@2025';
 
-    await page.waitForSelector('#textfield-1055-inputEl', { timeout: 10000 });
-    await page.type('#textfield-1055-inputEl', username);
-    await page.type('#textfield-1056-inputEl', password);
+    await new Promise(resolve => setTimeout(resolve, 500));
+    await page.waitForSelector('input[name="name"]');
+    await page.type('input[name="name"]', username);
 
-    try {
-      await page.waitForSelector('#button-1062-btnInnerEl', { timeout: 10000 });
+    await page.waitForSelector('input[name="password"]');
+    await page.type('input[name="password"]', password);
     
-      let navigationDetected = false;
-      page.on('framenavigated', frame => {
-        const url = frame.url();
+    try {
+      await page.waitForSelector('.x-btn-inner'); // Aguarda qualquer botão com essa classe
+      const buttons = await page.$$('.x-btn-inner');
       
-        if (url.includes('https://creditoimobiliario.daycoval.com.br/')) {
-          console.log("🌐 Navegação detectada para a home:", url);
-          navigationDetected = true;
+      for (const btn of buttons) {
+        const text = await page.evaluate(el => el.innerText, btn);
+        if (text.trim() === 'Login') {
+          await btn.click(); // Clica no botão com o texto "Login"
+          break;
         }
-      });
-
-      const navigationPromise = page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 55000 });
-      await page.click('#button-1062-btnInnerEl');    
-      await navigationPromise;
+      }
       console.log("🔄 Página redirecionada após login.");
     } catch (navErr) {
+      console.log(navErr);
       const erroLogin = await page.$('.erroLogin, .mensagemErro, .alert-danger');
       if (erroLogin) {
         const mensagem = await page.evaluate(el => el.innerText, erroLogin);
@@ -31,5 +30,5 @@ export default async function loginBradescoImovel(page) {
       } else {
         throw new Error(`❌ Login possivelmente falhou: sem redirecionamento detectado.`);
       }
-    }
+    }    
 }

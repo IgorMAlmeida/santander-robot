@@ -4,7 +4,7 @@ import itauSimulation from '../app/services/Financiamento/ItauImovel/index.js';
 import bradescoSimulation from '../app/services/Financiamento/BradescoImovel/index.js';
 
 const connection = new IORedis({
-  host: 'localhost',
+  host: process.env.REDIS_NAME_INSTANCIA,
   port: 6379,
   maxRetriesPerRequest: null
 });
