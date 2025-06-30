@@ -10,7 +10,6 @@ const bankUnlock = {
   // MASTER:() => UnlockMaster(),
   // BMG:() => UnlockController(),
   BMG: (params) => UnlockController(params),
-
 };
 
 export async function UnlockBankUser(consultParams) {

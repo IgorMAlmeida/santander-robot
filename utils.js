@@ -87,6 +87,21 @@ export async function checkElementAndText(page, selector) {
     }
 }
 
+export async function checkElementAndValue(page, selector) {
+    try {
+        const element = await page.$(`::-p-xpath(${selector})`);
+
+        if(!element) {
+            throw new Error('Element not found for selector: ' + selector);
+        }
+
+        const textoElemento = await element.evaluate(el => el.value);
+        return { status: true, text: textoElemento };        
+    } catch (error) {
+        return {status: false, text: error };
+    }
+}
+
 export function replaceValues(value) {
     if (value.includes('.')) {
         let newValue = value.replace(/\./g, '');
@@ -98,7 +113,6 @@ export async function getAltTextByXPath(page, xpath) {
     try {
         const elements = await page.$$(`xpath/${xpath}`);
         
-        console.log(`elements dentro de getAltTextByXPath para path${xpath}`, elements);
         if (elements.length > 0) {
             return await page.evaluate(img => img.getAttribute('alt'), elements[0]);
         }

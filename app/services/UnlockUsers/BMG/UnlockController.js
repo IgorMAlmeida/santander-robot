@@ -2,13 +2,11 @@ import puppeteer from 'puppeteer-extra';
 import { executablePath } from 'puppeteer';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import AdblockerPlugin from 'puppeteer-extra-plugin-adblocker';
-import { loginPortal } from './loginPortal.js'; 
+import { loginPortal } from './LoginPortal.js'; 
 import { UnlockUser } from './UnlockUser.js';
-import path from 'path';
-import fs from 'fs';
-import { sleep } from '../../../../utils.js';
-import { logoutBmg } from './logoutBMG.js';
-import { checkInboxEmail } from './checkInboxEmail.js';
+import { blockUnnecessaryRequests, sleep } from '../../../../utils.js';
+import { logoutBmg } from './LogoutBMG.js';
+import { checkInboxEmail } from './CheckInboxEmail.js';
 
 puppeteer.use(StealthPlugin());
 puppeteer.use(AdblockerPlugin({ blockTrackers: true }));
@@ -30,9 +28,11 @@ export async function UnlockController(params) {
   });
 
   const page = await browser.newPage();
-  try {
-    console.log('Iniciando Login...');
+  await blockUnnecessaryRequests(page);
 
+  try {
+    await sleep(1000);
+    console.log('Iniciando Login...');
     const loginData = await loginPortal(page);
     if (!loginData.status) {
       if (loginData.isPortalError) {
@@ -47,24 +47,26 @@ export async function UnlockController(params) {
     if(!unlock.status) {
       throw new Error(unlock.data);
     }
+    await logoutBmg(unlock.data);
     
+    console.log('Desbloqueio concluido com sucesso. Iniciando checagem de email...');
     const checkEmailPass = await checkInboxEmail(loginData.data, params);
-    // const checkEmailPass = await checkInboxEmail(page, params);
     if(!checkEmailPass.status) {
       throw new Error(checkEmailPass.data);
     }
-
-    await sleep(15000);
-    await sleep(1000)
+    await sleep(1000);
+    await browser.close();
 
     return {
       status: true,
-      response: unlock.message,
-      data: unlock.data
+      response: checkEmailPass.message,
+      data: 'Usuário desbloqueado e senha resetada com sucesso.',
     };
   } catch (err) {
-    // await browser.close();
-    // await logoutBmg(page);
+    await sleep(1000);
+    await logoutBmg(page);
+    await sleep(1000);
+    await browser.close();
 
     return {
       status: false,
