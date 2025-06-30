@@ -16,6 +16,7 @@ import { ItauImovelFinancial } from './controllers/Financial/ItauImovelControlle
 import { ItauImovelStatus } from './controllers/Financial/ItauImovelStatusController.js';
 import { BradescoImovelFinancial } from './controllers/Financial/BradescoImovelController.js';
 import { BradescoImovelStatus } from './controllers/Financial/BradescoImovelStatusController.js';
+import { UnlockBankUser } from './controllers/UnlockBankUser.js';
 
 const upload = multer({ dest: 'uploads/' });
 const router = express.Router();
@@ -124,6 +125,24 @@ router.post('/api/consult/portal_consig', upload.none(), async (req, res) => {
     }
 });
 
+router.post('/api/unlock_user_bank', upload.none(), async (req, res) => {
+    try {
+        const response = await UnlockBankUser(req?.body);
+
+        if (!response.status) {
+            throw new Error(response.response);
+        }
+
+        res.status(200).json(response);
+    } catch (err) {
+        console.error('Erro ao processar a solicitação:', err);
+        res.status(400).json({
+            status: false,
+            response: err.message,
+            data: null
+        });
+    }
+});
 
 router.post('/santander_proposals', async (req, res) => {
     try {
