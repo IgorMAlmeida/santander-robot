@@ -8,11 +8,6 @@ export async function clickElementByXpath(page, xpath, timeout = 5000, waitUntil
     await button.click();
 };
 
-
-export async function clickElementByXpathWithoutWait(page, xpath) {
-    await page.click(`::-p-xpath(${xpath})`);
-};
-
 export async function clickElementByXpathWithoutWait(page, xpath) {
     await page.click(`::-p-xpath(${xpath})`);
 };

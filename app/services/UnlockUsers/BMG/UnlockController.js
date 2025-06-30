@@ -22,7 +22,7 @@ export async function UnlockController(params) {
       '--disable-software-rasterizer',
       '--disable-dev-shm-usage',
     ],
-    headless: false,
+    headless: true,
     ignoreDefaultArgs: ['--disable-extensions', '--enable-automation'],
     executablePath: executablePath()  
   });
