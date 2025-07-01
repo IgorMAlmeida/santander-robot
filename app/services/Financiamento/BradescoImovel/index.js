@@ -89,7 +89,7 @@ export default async function simulation(data) {
         await selectClick(page, '#rdoFinanciarDespesas_1', 3000);
       }
 
-      if (data.amortization == 'SAC') {
+      if (data.amortization == 'SAC' || data.amortization == 'sac') {
         await selectClick(page, '#RbSistemaAmortizacaoInicio_0', 3000);
       } else {
         await selectClick(page, '#RbSistemaAmortizacaoInicio_1', 3000);
@@ -159,55 +159,61 @@ export default async function simulation(data) {
           await typeInput(page, '#txtCADUNomeMae', nomeFinal);
           await page.waitForSelector('#ddlCADUEstadoCivil', { visible: true });
           await page.select('#ddlCADUEstadoCivil', data.marital_status);
+
+          await page.waitForSelector('#ddlCADUCategoriaProfissional', { visible: true });
+          await page.select('#ddlCADUCategoriaProfissional', data.proof_income);
+          await new Promise(resolve => setTimeout(resolve, 300));
+          if (!["6", "7", "8", "9", "10", "11", "12", "13"].includes(data.proof_income)) {
+            await page.waitForFunction(() => {
+              const el = document.querySelector('#ddlCADUProfissaoOcupacao');
+              return el && el.options.length > 1;
+            }, { timeout: 15000 });
+
+            await new Promise(resolve => setTimeout(resolve, 300));
+            const primeiroValor = await page.$eval('#ddlCADUProfissaoOcupacao', select => {
+              return select.options[1].value; // A primeira opção (não vazia) é a de índice 1
+            });
+            await page.select('#ddlCADUProfissaoOcupacao', primeiroValor);
+
+            if (!["6", "7", "8", "9", "10", "11", "12", "13", "2", "4"].includes(data.proof_income)) {
+              console.log("Entrou no cargo" + data.proof_income);
+              // await page.waitForSelector('#ddlCADUCargo');
+              // await page.waitForFunction(() => {
+              //   const el = document.querySelector('#ddlCADUCargo');
+              //   return el && el.options.length > 1;
+              // }, { timeout: 15000 });
+              await page.waitForSelector('#ddlCADUCargo');
+
+              const primeiroValor = await page.$eval('#ddlCADUCargo', select => {
+                return select.options[1].value; // Pega a primeira opção válida
+              });
+              await page.select('#ddlCADUCargo', primeiroValor);
+            }
+
+            if (data.proof_income === "1") {
+              await new Promise(resolve => setTimeout(resolve, 700));
+              console.log("Entrou na data de admissao:" + formattedDate);
+              await typeInput(page, '#txtCADUDataAdmissao',formattedDate);
+            }
+          }
         } catch (error) {
           console.error('❌ Não pediu campos do cliente:', error);
         }
 
-        await page.waitForSelector('#ddlCADUCategoriaProfissional', { visible: true });
-        await page.select('#ddlCADUCategoriaProfissional', data.proof_income);
-        await new Promise(resolve => setTimeout(resolve, 300));
-        if (!["6", "7", "8", "9", "10", "11", "12", "13"].includes(data.proof_income)) {
-          await page.waitForFunction(() => {
-            const el = document.querySelector('#ddlCADUProfissaoOcupacao');
-            return el && el.options.length > 1;
-          }, { timeout: 15000 });
-
-          const primeiroValor = await page.$eval('#ddlCADUProfissaoOcupacao', select => {
-            return select.options[1].value; // A primeira opção (não vazia) é a de índice 1
-          });
-          await page.select('#ddlCADUProfissaoOcupacao', primeiroValor);
-
-          if (!["6", "7", "8", "9", "10", "11", "12", "13", "2", "4"].includes(data.proof_income)) {
-            console.log("Entrou no cargo" + data.proof_income);
-            await page.waitForFunction(() => {
-              const el = document.querySelector('#ddlCADUCargo');
-              return el && el.options.length > 1;
-            }, { timeout: 15000 });
-
-            const primeiroValor = await page.$eval('#ddlCADUCargo', select => {
-              return select.options[1].value; // A primeira opção (não vazia) é a de índice 1
-            });
-            await page.select('#ddlCADUCargo', primeiroValor);
-          }
-
-          if (data.proof_income === "1") {
-            console.log("Entrou no cargo" + data.proof_income);
-            await typeInput(page, '#txtCADUDataAdmissao',formattedDate);
-          }
-        }
-
         try {
-          if (data.proof_income !== "12") {
+          try {
             await typeInput(page, '#txtCADURenda', data.income_value);
+          } catch (error) {
+            console.error('❌ Não pediu renda');
           }
           await page.waitForSelector('#txtCADUCEP',  { visible: true, timeout: 1000 });
           await typeInput(page, '#txtCADUCEP', data.zip_code);
-          await typeInput(page, 'txtCADUEnderecoResidencial', data.street);
-          await typeInput(page, 'txtCADUNumero', data.number);
-          await typeInput(page, 'txtCADUBairro', data.neighborhood);
-          await typeInput(page, 'txtCADUMunicipio', data.city);
+          await typeInput(page, '#txtCADUEnderecoResidencial', data.street);
+          await typeInput(page, '#txtCADUNumero', data.number);
+          await typeInput(page, '#txtCADUBairro', data.neighborhood);
+          await typeInput(page, '#txtCADUMunicipio', data.city);
           await page.waitForSelector('#ddlCADUEstado', { visible: true });
-          await page.select('ddlCADUEstado', data.idUf);
+          await page.select('#ddlCADUEstado', idUf);
           await page.waitForSelector('#ddlCADUTipoResidencia', { visible: true });
           await page.select('#ddlCADUTipoResidencia', '4');
         } catch (error) {
@@ -247,47 +253,55 @@ export default async function simulation(data) {
             console.error('❌ Não pediu campos do conjuge cliente:', error);
           }
 
-          await page.select('#ddlCADUCategoriaProfissionalSC', data.spouse.proof_income);
-          if (!["6", "7", "8", "9", "10", "11", "12", "13"].includes(data.spouse.proof_income)) {
-            await page.waitForFunction(() => {
-              const el = document.querySelector('#ddlCADUProfissaoOcupacaoSC');
-              return el && el.options.length > 1;
-            }, { timeout: 15000 });
-
-            const primeiroValor = await page.$eval('#ddlCADUProfissaoOcupacaoSC', select => {
-              return select.options[1].value; // A primeira opção (não vazia) é a de índice 1
-            });
-            await page.select('#ddlCADUProfissaoOcupacaoSC', primeiroValor);
-    
-            if (!["6", "7", "8", "9", "10", "11", "12", "13", "2", "4"].includes(data.spouse.proof_income)) {
+          try {
+            await page.select('#ddlCADUCategoriaProfissionalSC', data.spouse.proof_income);
+            if (!["6", "7", "8", "9", "10", "11", "12", "13"].includes(data.spouse.proof_income)) {
               await page.waitForFunction(() => {
-                const el = document.querySelector('#ddlCADUCargoSC');
+                const el = document.querySelector('#ddlCADUProfissaoOcupacaoSC');
                 return el && el.options.length > 1;
               }, { timeout: 15000 });
 
-              const primeiroValor = await page.$eval('#ddlCADUCargoSC', select => {
+              const primeiroValor = await page.$eval('#ddlCADUProfissaoOcupacaoSC', select => {
                 return select.options[1].value; // A primeira opção (não vazia) é a de índice 1
               });
-              await page.select('#ddlCADUCargoSC', primeiroValor);
+              await page.select('#ddlCADUProfissaoOcupacaoSC', primeiroValor);
+      
+              if (!["6", "7", "8", "9", "10", "11", "12", "13", "2", "4"].includes(data.spouse.proof_income)) {
+                await page.waitForSelector('#ddlCADUCargo');
+
+                const primeiroValor = await page.$eval('#ddlCADUCargo', select => {
+                  return select.options[1].value; // Pega a primeira opção válida
+                });
+                await page.select('#ddlCADUCargo', primeiroValor);
+              }
             }
-    
-            if (data.proof_income === "1") {
-              await typeInput(page, '#txtCADUDataAdmissaoSC', formattedDate);
-            }
+          } catch (error) {
+            console.error('❌ Não pediu dados de profissão.');
           }
           
-          if (data.proof_income !== "12") {
+          try {
+            if (data.proof_income === "1") {
+              await new Promise(resolve => setTimeout(resolve, 700));
+              await typeInput(page, '#txtCADUDataAdmissaoSC', formattedDate);
+            }
+          } catch (error) {
+            console.error('❌ Não pediu data de Admissão');
+          }
+
+          try {
             await typeInput(page, '#txtCADURendaSC', data.spouse.income_value);
+          } catch (error) {
+            console.error('❌ Não pediu renda');
           }
         
           try{
             await page.waitForSelector('#txtCADUCEPSC',  { visible: true, timeout: 1000 });
             await typeInput(page, '#txtCADUCEPSC', data.zip_code);
-            await typeInput(page, 'txtCADUEnderecoResidencialSC', data.street);
-            await typeInput(page, 'txtCADUNumeroSC', data.number);
-            await typeInput(page, 'txtCADUBairroSC', data.neighborhood);
-            await typeInput(page, 'txtCADUMunicipioSC', data.city);
-            await page.select('ddlCADUEstadoSC', data.idUf);
+            await typeInput(page, '#txtCADUEnderecoResidencialSC', data.street);
+            await typeInput(page, '#txtCADUNumeroSC', data.number);
+            await typeInput(page, '#txtCADUBairroSC', data.neighborhood);
+            await typeInput(page, '#txtCADUMunicipioSC', data.city);
+            await page.select('#ddlCADUEstadoSC', idUf);
             await page.select('#ddlCADUTipoResidenciaSC', '4');
           } catch (error) {
             console.error('❌ Não pediu campos do endereço do cliente:', error);

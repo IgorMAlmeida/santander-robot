@@ -1,5 +1,4 @@
-import loginBradescoImovel from "./login.js";
-import { typeInput, selectClick } from "./bradescoUtils.js";
+import loginDaycovalImovel from "./login.js";
 import puppeteer from "puppeteer-extra";
 
 export default async function simulation(data) {
@@ -15,12 +14,12 @@ export default async function simulation(data) {
   
     const pagesBefore = await browser.pages();
     const page = pagesBefore[0];
-    const BRADESCO_IMOVEL_URL = (process.env.BRADESCO_IMOVEL_URL || 'https://wspf.banco.bradesco/wsImoveis/AreaRestrita/Default.aspx?ReturnUrl=%2fwsImoveis%2fAreaRestrita%2fConteudo%2fHome.aspx').replace(/"/g, '').trim();
+    const DAYCOVAL_IMOVEL_URL = (process.env.DAYCOVAL_IMOVEL_URL || 'https://wspf.banco.DAYCOVAL/wsImoveis/AreaRestrita/Default.aspx?ReturnUrl=%2fwsImoveis%2fAreaRestrita%2fConteudo%2fHome.aspx').replace(/"/g, '').trim();
 
-    await page.goto(BRADESCO_IMOVEL_URL, { waitUntil: "domcontentloaded" });
-    console.log("📄 Página carregada: ", BRADESCO_IMOVEL_URL);
+    await page.goto(DAYCOVAL_IMOVEL_URL, { waitUntil: "domcontentloaded" });
+    console.log("📄 Página carregada: ", DAYCOVAL_IMOVEL_URL);
 
-    await loginBradescoImovel(page);
+    await loginDaycovalImovel(page);
     await selectClick(page, 'a[href="/wsImoveis/AreaRestrita/Conteudo/Proposta/Listar.aspx"]',1000);
 
     try {

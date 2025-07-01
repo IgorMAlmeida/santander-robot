@@ -16,6 +16,10 @@ import { ItauImovelFinancial } from './controllers/Financial/ItauImovelControlle
 import { ItauImovelStatus } from './controllers/Financial/ItauImovelStatusController.js';
 import { BradescoImovelFinancial } from './controllers/Financial/BradescoImovelController.js';
 import { BradescoImovelStatus } from './controllers/Financial/BradescoImovelStatusController.js';
+import { UnlockBankUser } from './controllers/UnlockBankUser.js';
+import { JobGetList, JobGetId } from './controllers/Financial/JobGetController.js'
+import { DaycovalImovelStatus } from './controllers/Financial/DaycovalImovelStatusController.js';
+import { DaycovalImovelFinancial } from './controllers/Financial/DaycovalImovelController.js';
 
 const upload = multer({ dest: 'uploads/' });
 const router = express.Router();
@@ -124,6 +128,24 @@ router.post('/api/consult/portal_consig', upload.none(), async (req, res) => {
     }
 });
 
+router.post('/api/unlock_user_bank', upload.none(), async (req, res) => {
+    try {
+        const response = await UnlockBankUser(req?.body);
+
+        if (!response.status) {
+            throw new Error(response.response);
+        }
+
+        res.status(200).json(response);
+    } catch (err) {
+        console.error('Erro ao processar a solicitação:', err);
+        res.status(400).json({
+            status: false,
+            response: err.message,
+            data: null
+        });
+    }
+});
 
 router.post('/santander_proposals', async (req, res) => {
     try {
@@ -142,15 +164,18 @@ router.post("/api/consult/aprovacao/c6/proposal", C6Approval);
 router.post("/api/consult/aprovacao/daycoval/proposal", DaycovalApproval);
 router.post("/api/consult/aprovacao/facta/proposal", FactaApproval);
 router.post("/api/consult/aprovacao/ole/proposal", OLEApproval);
-
 router.post("/api/financiamento/itau", ItauFinancial);
 
 router.post("/api/consult/srcc/facta", FactaSRCC);
-
 router.post("/api/consult/biometrics", Biometrics);
+
 router.post("/api/financiamento/itau/imoveis", ItauImovelFinancial);
 router.get("/api/financiamento/itau/imoveis/status", ItauImovelStatus);
 router.post("/api/financiamento/bradesco/imoveis", BradescoImovelFinancial);
 router.get("/api/financiamento/bradesco/imoveis/status", BradescoImovelStatus);
+router.post("/api/financiamento/daycoval/imoveis", DaycovalImovelFinancial);
+router.get("/api/financiamento/daycoval/imoveis/status", DaycovalImovelStatus);
+router.get("/api/financiamento/jobs/list", JobGetList);
+router.get("/api/financiamento/jobs", JobGetId);
 
 export default router;

@@ -10,6 +10,8 @@ services:
       - ~/.cache/puppeteer:/root/.cache/puppeteer 
     restart: always
     entrypoint: "./entrypoint.sh"
+    depends_on:
+      - redis
     networks:
       - app-network
     environment:
