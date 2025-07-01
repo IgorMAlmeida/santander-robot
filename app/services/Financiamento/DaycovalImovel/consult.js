@@ -1,5 +1,4 @@
 import loginDaycovalImovel from "./login.js";
-import { typeInput, selectClick } from "./utils.js";
 import puppeteer from "puppeteer-extra";
 
 export default async function simulation(data) {

@@ -1,223 +1,95 @@
-const ufToCode = {
-    "AC": "11",
-    "AL": "36",
-    "AP": "19",
-    "AM": "13",
-    "BA": "39",
-    "CE": "32",
-    "DF": "96",
-    "ES": "52",
-    "GO": "93",
-    "MA": "30",
-    "MT": "90",
-    "MS": "91",
-    "MG": "50",
-    "PA": "17",
-    "PB": "34",
-    "PR": "73",
-    "PE": "35",
-    "PI": "31",
-    "RJ": "54",
-    "RN": "33",
-    "RS": "77",
-    "RO": "10",
-    "RR": "15",
-    "SC": "75",
-    "SP": "58",
-    "SE": "38",
-    "TO": "97"
-};
+/**
+ * Clica no combobox e seleciona uma opção com texto exato.
+ * @param {object} page - Instância do Puppeteer.
+ * @param {number} index - Seletor do combobox (ex: '#aejs-combobox-1257-trigger-picker[1]').
+ * @param {string} optionText - Texto exato da opção a ser selecionada (ex: 'Originação').
+ */
+export async function selectComboOptionByText(page, index, optionText) {
+    // Clica no combobox    
+    const comboboxes = await page.$$('div[id*="aejs-combobox"][id$="trigger-picker"]');
 
-const idToStringMounth = {
-    "01": "Jan",
-    "02": "Fev",
-    "03": "Mar",
-    "04": "Abr",
-    "05": "Mai",
-    "06": "Jun",
-    "07": "Jul",
-    "08": "Ago",
-    "09": "Set",
-    "10": "Out",
-    "11": "Nov",
-    "12": "Dez"
-};
+    if (!comboboxes[index]) {
+        throw new Error(`❌ Combobox de índice ${index} não encontrado.`);
+      }
 
-export async function getUFCode(uf) {
-return ufToCode[uf.toUpperCase()] || '';
-}
-
-export async function typeInput(page, selector, value) {
-    await page.waitForSelector(selector, { visible: true });
-    await page.click(selector, { clickCount: 3 });
-    await page.type(selector, value, { delay: 30 });
-}
-
-export async function selectInput(page, selector, value) {
-    await page.waitForSelector(selector, { visible: true });
-    await page.select(selector, value);
-}
-
-export async function selectClick(page, selector, timeout = 5000) {
-    await page.waitForSelector(selector, { visible: true });
-    await page.click(selector);
-    await new Promise(resolve => setTimeout(resolve, timeout));
-}
-
-export async function htmlConsole(page) {
-    const html = await page.content();
-    console.log(html);
-}
-
-export async function selectAndPostback(page, selector, value, timeout = 5000) {
-    await page.waitForSelector(selector, { visible: true });
-    await page.select(selector, value);
-    await page.evaluate((sel, val) => {
-        __doPostBack(sel.replace('#', ''), val);
-    }, selector, value);
-    await new Promise(resolve => setTimeout(resolve, timeout));
-}
-
-export async function clickAndPostback(page, selector, value, timeout = 5000) {
-    await page.waitForSelector(selector, { visible: true });
-    await page.click(selector);
-    await page.type(selector, value);
-    await page.evaluate((sel, val) => {
-        __doPostBack(sel.replace('#', ''), val);
-    }, selector, value);
-    await new Promise(resolve => setTimeout(resolve, timeout));
-}
-
-export async function typeAndSubmit(page, inputSelector, value, submitButtonSelector, timeout = 3000) {
-    await page.waitForSelector(inputSelector, { visible: true });
-    await page.click(inputSelector, { clickCount: 3 });
-    await page.type(inputSelector, value, { delay: 20 });
-    
-    await page.waitForSelector(submitButtonSelector, { visible: true });
-    await page.click(submitButtonSelector);
-
-    await new Promise(resolve => setTimeout(resolve, timeout));
-}
-
-export async function typeAndSubmitWithValidation(page, inputSelector, value, submitButtonSelector, errorSelectors = [], timeout = 3000) {
-    await typeAndSubmit(page, inputSelector, value, submitButtonSelector, timeout);
-
-    for (const selector of errorSelectors) {
-        const isVisible = await page.evaluate(sel => {
-            const el = document.querySelector(sel);
-            return el && getComputedStyle(el).display !== 'none' && el.innerText.trim() !== '';
-        }, selector);
-
-        if (isVisible) {
-            const message = await page.$eval(selector, el => el.innerText.trim());
-            throw new Error(`❌ Erro de validação detectado: "${message}" (${selector})`);
-        }
-    }
-
-    console.log("✅ Campo preenchido e validado com sucesso:", inputSelector);
-}
-
-export async function typeAndSubmitWithMaxCheck(page, inputSelector, value, buttonSelector, spanSelector, timeout = 3000) {
-    // Converte o valor recebido para número (caso seja string no formato brasileiro)
-    let valorFinal = await convertToNumber(value);
-
-    // 1. Captura o texto do span
-    const textoSpan = await page.$eval(spanSelector, el => el.innerText);
-    const match = textoSpan.match(/R\$ ?([\d.,]+)/i);
-
-    if (!match) {
-        throw new Error(`❌ Não foi possível identificar o valor máximo no span (${spanSelector}).`);
-    }
-
-    const valorMaximo = await convertToNumber(match[1]);
-
-    if (valorFinal > valorMaximo) {
-        console.warn(`⚠️ Valor (${valorFinal}) excede o máximo (${valorMaximo}). Usando o valor máximo.`);
-        valorFinal = valorMaximo;
-    }
-
-    await typeAndSubmit(page,inputSelector, valorFinal.toFixed(2).replace('.', ','), buttonSelector, timeout);
-
-    console.log(`✅ Campo ${inputSelector} preenchido com: R$ ${valorFinal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`);
-}
-
-export async function typeAndSubmitIntegerWithMaxCheck(page, inputSelector, value, buttonSelector, spanSelector, timeout = 3000) {
-    const textoSpan = await page.$eval(spanSelector, el => el.innerText);
-    const match = textoSpan.match(/(\d+)\s*meses/i);
-
-    if (!match) {
-        throw new Error(`❌ Não foi possível identificar o valor máximo no span (${spanSelector}).`);
-    }
-
-    const valorMaximo = parseInt(match[1]);
-    let valorFinal = parseInt(value);
-
-    if (valorFinal > valorMaximo) {
-        console.warn(`⚠️ Valor (${valorFinal}) excede o máximo (${valorMaximo}). Usando o valor máximo.`);
-        valorFinal = valorMaximo;
-    }
-    valorFinal = valorFinal.toString();
-
-    await typeAndSubmit(page,inputSelector, valorFinal, buttonSelector, timeout);
-
-    console.log(`✅ Campo ${inputSelector} preenchido com: ${valorFinal}`);
-}
-
-export async function convertToNumber(valueString) {
-    // Remove os separadores de milhar (pontos) e converte para número
-    const cleanValue = valueString.replace(/\./g, '').replace(',', '.');
-    return parseFloat(cleanValue);
-}
-
-export async function extractSimulationResult(page) {
-    const getText = async (selector) => {
-      const element = await page.$(selector);
-      if (!element) return null;
-      const text = await page.evaluate(el => el.innerText.trim(), element);
-      return text;
-    };
+    await comboboxes[index].click();
   
-    const result = {
-      valorImovel: await getText('#lblValorImovel'),
-      valorFinanciamento: await getText('#lblValorFinanciamento_Adquirir'),
-      valorDespesas: await getText('#lblValorDespesasFinanciadas'),
-      prazo: await getText('#lblPrazo_Adquirir'),
-      sistemaAmortizacao: await getText('#lblSistemaAmortizacao_Adquirir'),
-      formaPagamento: await getText('#lblResultadoFormaPagamento'),
-      taxaJurosEfetivaAno: await getText('#lblTaxaJurosEfetivaAno_Adquirir'),
-      valorPrestacaoMensal: await getText('#lblValorPrestacaoMensal_Adquirir'),
-      rendaLiquidaMinima: await getText('#lblRendaLiquidaMinima_Adquirir'),
-      cesh: await getText('#lblCESHAno_Adquirir'),
-      cet: await getText('#lblCETAno_Adquirir'),
-    };
+    // Aguarda a lista de opções aparecer
+    await page.waitForSelector('li.x-boundlist-item', { visible: true });
   
-    console.log("📋 Resultado da Simulação:", result);
-    return result;
-}
-
-export async function clickAndSavePdfBase64(page) {
-
-    page.on('request', async (req) => {
-        const url = req.url();
-        if (url.includes('SimulacaoImpressao.aspx')) {
-          console.log('➡️ Nova aba detectada:', url);
-      
-          // Abra a nova página manualmente
-          const printPage = await page.context().newPage();
-          await printPage.goto(url, { waitUntil: 'load' });
-            
-          console.log('Página aberta com sucesso!');
-        }
-      });
-      
-    await page.click('#lnkImprimir'); 
-    await new Promise(resolve => setTimeout(resolve, 5000));
-    await page.waitForSelector('a.btnImprimir', { visible: true });
-    const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
-    const file64 = pdfBuffer.toString('base64');
-    console.log('📎 PDF capturado em Base64');
-    await page.bringToFront();
-
-    return file64;
+    // Seleciona a opção com o texto desejado
+    await page.evaluate((text) => {
+      const options = Array.from(document.querySelectorAll('li.x-boundlist-item'));
+      console.log(options);
+      const option = options.find(el => el.textContent.trim() === text);
+      if (option) {
+        option.click();
+      } else {
+        console.warn(`Opção com texto "${text}" não encontrada.`);
+      }
+    }, optionText);
   }
   
+  export async function fillComboInputAndSelect(page, index, text) {
+    // Seleciona todos os inputs do combobox
+    const inputs = await page.$$('input[id*="aejs-combobox"][id$="inputEl"]');
+  
+    if (!inputs[index]) {
+      throw new Error(`❌ Input do combobox de índice ${index} não encontrado.`);
+    }
+  
+    // Foca e digita no input
+    await inputs[index].click({ clickCount: 3 }); // Seleciona o conteúdo anterior
+    await inputs[index].press('Backspace');
+    await inputs[index].type(text, { delay: 50 });
+    
+    // Clica diretamente na sugestão correspondente
+    await page.evaluate((text) => {
+    const items = Array.from(document.querySelectorAll('li.x-boundlist-item'))
+        .filter(el => el.offsetParent !== null); // Apenas os visíveis
+    
+    const match = items.find(el => el.textContent.trim() === text);
+    if (match) {
+        match.scrollIntoView({ block: 'center' });
+        match.click();
+    } else {
+        console.warn(`❌ Opção com texto "${text}" não encontrada.`);
+    }
+    }, text);
+      
+  }
+
+  export async function fillInputAndSelect(page, name, text) {
+    // Seleciona todos os inputs do combobox
+    const inputs = await page.$(name);
+    
+    // Foca e digita no input
+    await inputs.click({ clickCount: 3 }); // Seleciona o conteúdo anterior
+    await inputs.press('Backspace');
+    await inputs.type(text, { delay: 50 });
+    
+    // Clica diretamente na sugestão correspondente
+    await page.evaluate((text) => {
+    const items = Array.from(document.querySelectorAll('li.x-boundlist-item'))
+        .filter(el => el.offsetParent !== null); // Apenas os visíveis
+    
+    const match = items.find(el => el.textContent.trim() === text);
+    if (match) {
+        match.scrollIntoView({ block: 'center' });
+        match.click();
+    } else {
+        console.warn(`❌ Opção com texto "${text}" não encontrada.`);
+    }
+    }, text);
+      
+  }
+
+  export async function clickButtonByText(page, text) {
+    const [button] = await page.$x(`//span[contains(@class, 'x-btn-inner') and normalize-space(text())='${text}']`);
+    if (button) {
+      await button.click();
+      console.log(`✅ Botão "${text}" clicado.`);
+    } else {
+      console.warn(`❌ Botão "${text}" não encontrado.`);
+    }
+  }

@@ -20,10 +20,9 @@ export async function DaycovalImovelStatus(req, res) {
         newJobId = newJob.id;
         result = newJobId;
     } else if (state === 'completed') {
-        const dados = await consult(result.Proposta);
-        result.StatusFaseProposta = dados.response.StatusFaseProposta;
-        result.Status = dados.response.Status;
-        result.Motivo = dados.response.Motivo;
+        result.StatusFaseProposta = 'ANDAMENTO';
+        result.Status = 'ANDAMENTO';
+        result.Motivo = '';
     }
     return ControllerResponse.success(res, { state, result });
   } catch (error) {
