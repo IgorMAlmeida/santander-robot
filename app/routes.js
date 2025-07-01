@@ -20,6 +20,7 @@ import { UnlockBankUser } from './controllers/UnlockBankUser.js';
 import { JobGetList, JobGetId } from './controllers/Financial/JobGetController.js'
 import { DaycovalImovelStatus } from './controllers/Financial/DaycovalImovelStatusController.js';
 import { DaycovalImovelFinancial } from './controllers/Financial/DaycovalImovelController.js';
+import { consultOleUserBank } from './jobs/consultOleUserBank.js';
 
 const upload = multer({ dest: 'uploads/' });
 const router = express.Router();
@@ -177,5 +178,7 @@ router.post("/api/financiamento/daycoval/imoveis", DaycovalImovelFinancial);
 router.get("/api/financiamento/daycoval/imoveis/status", DaycovalImovelStatus);
 router.get("/api/financiamento/jobs/list", JobGetList);
 router.get("/api/financiamento/jobs", JobGetId);
+
+router.post("/api/consult/ole/user/bank", consultOleUserBank);
 
 export default router;
