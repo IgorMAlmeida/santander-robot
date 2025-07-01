@@ -1,7 +1,19 @@
 import express from 'express';
 import routes from './app/routes.js';
 import dotenv from 'dotenv';
+import { initDatabase } from './app/utils/tokenDatabase.js';
+import { initTokenCleanup } from './app/utils/tokenCleanup.js';
+
 dotenv.config();
+
+initDatabase()
+  .then(() => {
+    console.log('Token database initialized successfully');
+    initTokenCleanup();
+  })
+  .catch(err => {
+    console.error('Failed to initialize token database:', err);
+  });
 
 const app = express(); 
 
