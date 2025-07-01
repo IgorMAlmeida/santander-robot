@@ -1,7 +1,8 @@
 import ApiService from "../services/api.service.js";
 import { ProposalConsult } from "../controllers/OlaController.js";
+import ControllerResponse from "../utils/ControllerResponse.js";
 
-export const consultOleUserBank = async () => {
+export const consultOleUserBank = async (req, res) => {
     try {
         const response = await ApiService.get(`/proposals/ole/file_to_process`);
 
@@ -13,17 +14,10 @@ export const consultOleUserBank = async () => {
 
         await ProposalConsult(data.file_id, data.proposals);
 
-        return {
-            status: true,
-            message: "Consultou o usuário do OLE"
-        };
+        return ControllerResponse.success(res, {
+          message: "Consultou o usuário do OLE",
+        });
     } catch (error) {
-        console.error(error.message);
-        return {
-            status: false,
-            message: error.message
-        };
+        return ControllerResponse.error(res, error);
     }
 };
-
-consultOleUserBank()
