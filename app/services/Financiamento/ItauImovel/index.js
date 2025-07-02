@@ -23,7 +23,7 @@ export default async function simulation(data) {
   
     const pagesBefore = await browser.pages();
     const page = pagesBefore[0];
-    const ITAU_IMOVEL_URL = (process.env.ITAU_IMOVEL_URL || 'https://plataformaitauimoveis.cloud.itau.com.br/Portal/').replace(/"/g, '').trim();
+    const ITAU_IMOVEL_URL = (process.env.ITAU_IMOVEL_URL).replace(/"/g, '').trim();
 
     await page.goto(ITAU_IMOVEL_URL, { waitUntil: "domcontentloaded" });
     console.log("📄 Página carregada: ", ITAU_IMOVEL_URL);

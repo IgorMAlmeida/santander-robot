@@ -1,6 +1,6 @@
 export default async function loginDaycovalImovel(page) {
-    const username = process.env.DAYCOVAL_IMOVEL_LOGIN || 'DCM-CREDFRANCO';
-    const password = process.env.DAYCOVAL_IMOVEL_PASS_LOGIN || 'cRED@2025';
+    const username = process.env.DAYCOVAL_IMOVEL_LOGIN;
+    const password = process.env.DAYCOVAL_IMOVEL_PASS_LOGIN;
 
     await new Promise(resolve => setTimeout(resolve, 500));
     await page.waitForSelector('input[name="name"]');

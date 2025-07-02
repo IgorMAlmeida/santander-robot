@@ -1,6 +1,6 @@
 export default async function loginBradescoImovel(page) {
-    const username = process.env.BRADESCO_IMOVEL_LOGIN || 'itssolucoes';
-    const password = process.env.BRADESCO_IMOVEL_PASS_LOGIN || 'Cred@2025';
+    const username = process.env.BRADESCO_IMOVEL_LOGIN;
+    const password = process.env.BRADESCO_IMOVEL_PASS_LOGIN;
 
     await page.waitForSelector('#txtLogin', { timeout: 10000 });
     await page.type('#txtLogin', username);

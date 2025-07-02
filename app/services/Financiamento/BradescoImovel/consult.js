@@ -15,7 +15,7 @@ export default async function simulation(data) {
   
     const pagesBefore = await browser.pages();
     const page = pagesBefore[0];
-    const BRADESCO_IMOVEL_URL = (process.env.BRADESCO_IMOVEL_URL || 'https://wspf.banco.bradesco/wsImoveis/AreaRestrita/Default.aspx?ReturnUrl=%2fwsImoveis%2fAreaRestrita%2fConteudo%2fHome.aspx').replace(/"/g, '').trim();
+    const BRADESCO_IMOVEL_URL = (process.env.BRADESCO_IMOVEL_URL).replace(/"/g, '').trim();
 
     await page.goto(BRADESCO_IMOVEL_URL, { waitUntil: "domcontentloaded" });
     console.log("📄 Página carregada: ", BRADESCO_IMOVEL_URL);
