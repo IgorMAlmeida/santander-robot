@@ -26,7 +26,7 @@ export default async function simulation(data) {
   
     const pagesBefore = await browser.pages();
     const page = pagesBefore[0];
-    const DAYCOVAL_IMOVEL_URL = (process.env.DAYCOVAL_IMOVEL_URL || 'https://creditoimobiliario.daycoval.com.br/').replace(/"/g, '').trim();
+    const DAYCOVAL_IMOVEL_URL = (process.env.DAYCOVAL_IMOVEL_URL).replace(/"/g, '').trim();
 
     await page.goto(DAYCOVAL_IMOVEL_URL, { waitUntil: "domcontentloaded" });
     console.log("📄 Página carregada: ", DAYCOVAL_IMOVEL_URL);
@@ -507,6 +507,7 @@ export default async function simulation(data) {
       response,
     };
   } catch (error) {
+    await browser.close();
     return {
       status: false,
       message: error.message,
