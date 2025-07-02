@@ -1,14 +1,11 @@
 export async function getByXpath (page, xpath) {
-
     const element = await page.$(`::-p-xpath(${xpath})`);
     return element;
 };
 
 export async function clickElementByXpath(page, xpath, timeout = 5000, waitUntil = 'domcontentloaded') {
-
     const button = await page.waitForSelector(`::-p-xpath(${xpath})`, { timeout, waitUntil });
     await button.click();
-
 };
 
 export async function clickElementByXpathWithoutWait(page, xpath) {
@@ -74,8 +71,8 @@ export async function awaitElement(page, selector) {
     }
 }
 
-export async function getElementTextByXpath(page, xpath) {
-    const element = await page.$(`::-p-xpath(${xpath})`);
+export async function getElementTextByXpath(page, xpath, timeout = 5000) {
+    const element = await getElementByXpath(page, xpath, timeout);
     return element.evaluate(el => el.textContent);
 }
 
@@ -84,10 +81,25 @@ export async function checkElementAndText(page, selector) {
         const element = await page.$(`::-p-xpath(${selector})`);
 
         if(!element) {
-            throw new Error('Element not found');
+            throw new Error('Element not found for selector: ' + selector);
         }
 
         const textoElemento = await element.evaluate(el => el.textContent);
+        return { status: true, text: textoElemento };        
+    } catch (error) {
+        return {status: false, text: error };
+    }
+}
+
+export async function checkElementAndValue(page, selector) {
+    try {
+        const element = await page.$(`::-p-xpath(${selector})`);
+
+        if(!element) {
+            throw new Error('Element not found for selector: ' + selector);
+        }
+
+        const textoElemento = await element.evaluate(el => el.value);
         return { status: true, text: textoElemento };        
     } catch (error) {
         return {status: false, text: error };
@@ -98,5 +110,98 @@ export function replaceValues(value) {
     if (value.includes('.')) {
         let newValue = value.replace(/\./g, '');
         return newValue.replace(/,/g, '.');
+    }
+}
+
+export async function typeByXpath(page, xpath, value, timeout = 5000) {
+    const element = await page.waitForSelector(`::-p-xpath(${xpath})`, { timeout });
+    await element.click({ clickCount: 3 });
+    await element.press("Backspace");
+
+    for (const char of value) {
+        await element.type(char, { delay: 100 });
+        await sleep(50);
+    }
+}
+
+export async function getElementByXpath(page, xpath, timeout = 5000) {
+    const element = await page.waitForSelector(`::-p-xpath(${xpath})`, { timeout });
+    return element;
+}
+export async function getAltTextByXPath(page, xpath) {
+    try {
+        const elements = await page.$$(`xpath/${xpath}`);
+        
+        if (elements.length > 0) {
+            return await page.evaluate(img => img.getAttribute('alt'), elements[0]);
+        }
+        return null;
+    } catch (error) {
+        console.error(`Erro ao buscar elemento com XPath ${xpath}:`, error);
+        return null;
+    }
+}
+export async function getLinkByXPath(page, xpath) {
+  const elements = await page.$$(`xpath/${xpath}`);
+  const element = elements[0];
+  if (!element) return null;
+
+  return page.evaluate(el => {
+    if (el.href) return el.href;
+
+    if (el.onclick) {
+      const matches = el.onclick.toString().match(
+        /(?:location\.href\s*=\s*['"]([^'"]+)['"]|\.href\s*\(\s*['"]([^'"]+)['"])/i
+      );
+      if (matches) return matches[1] || matches[2];
+    }
+
+    return el.dataset.href || el.dataset.url || null;
+  }, element);
+}
+
+
+export async function typeCPFWithMask(page, xpath, cpf) {
+    await page.evaluate((xpath) => {
+        const input = document.evaluate(
+            xpath,
+            document,
+            null,
+            XPathResult.FIRST_ORDERED_NODE_TYPE,
+            null
+        ).singleNodeValue;
+        input.value = '';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+    }, xpath);
+
+    const formattedCPF = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+
+    await page.evaluate((xpath, value) => {
+        const input = document.evaluate(
+            xpath,
+            document,
+            null,
+            XPathResult.FIRST_ORDERED_NODE_TYPE,
+            null
+        ).singleNodeValue;
+        input.value = value;
+        input.dispatchEvent(new Event('focus', { bubbles: true }));
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+        input.dispatchEvent(new Event('blur', { bubbles: true }));
+    }, xpath, formattedCPF);
+
+    const insertedValue = await page.evaluate((xpath) => {
+        return document.evaluate(
+            xpath,
+            document,
+            null,
+            XPathResult.FIRST_ORDERED_NODE_TYPE,
+            null
+        ).singleNodeValue.value;
+    }, xpath);
+
+    if (insertedValue !== formattedCPF) {
+        throw new Error(`Falha na formatação do CPF. Esperado: ${formattedCPF}, Obtido: ${insertedValue}`);
     }
 }

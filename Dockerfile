@@ -30,6 +30,8 @@ RUN npm install -g nodemon
     
 RUN npx puppeteer install --chrome
 
+RUN npm install imap-simple 
+
 RUN mkdir -p /usr/src/app/user_data && chmod -R 777 /usr/src/app/user_data
 
 ENV DISPLAY=:99
