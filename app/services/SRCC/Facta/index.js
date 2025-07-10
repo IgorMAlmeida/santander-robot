@@ -29,11 +29,12 @@ export default async function srcc(people) {
       return [];
     }
 
-    await sendConsults(peopleWithRegistrations, cookie);
-
+    await sendConsults(peopleWithRegistrations.found, cookie);
+    await sendConsultsNotFound(peopleWithRegistrations.notFound);
+    
     await browser.close();
 
-    return await verifySRCC(peopleWithRegistrations, cookie);
+    return await verifySRCC(peopleWithRegistrations.found, cookie);
   } catch (error) {
     await browser.close();
     throw error;
@@ -52,6 +53,7 @@ async function processRegistrations(people) {
   );
 
   const peopleWasFound = peopleNeedingRegistration.filter(person => registrations?.[person.cpf] && registrations[person.cpf] !== "Não encontrado");
+  const peopleNotFound = peopleNeedingRegistration.filter(person => !registrations?.[person.cpf] || registrations[person.cpf] === "Não encontrado");
 
   const peopleWithRegistrations = peopleWasFound.map((person) => {
     return {
@@ -60,7 +62,13 @@ async function processRegistrations(people) {
     };
   });
 
-  return [...people.filter(person => person.registration), ...peopleWithRegistrations];
+  return {
+    found: [
+      ...people.filter((person) => person.registration),
+      ...peopleWithRegistrations,
+    ],
+    notFound: peopleNotFound,
+  };
 }
 
 async function sendConsults(people, cookie) {
@@ -80,6 +88,24 @@ async function sendConsults(people, cookie) {
     }
 
     await sendConsult(formattedCpf, person.registration, cookie, gresponse);
+  }
+}
+
+async function sendConsultsNotFound(people) {
+  for (const person of people) {
+    const data = {
+      cpf: person.cpf,
+      srcc: "M",
+    };
+
+    await APIService.post(
+      `${process.env.FACTA_SRCC_POSTBACK_URL}/${person.cpf}`,
+      {
+        "Content-Type": "application/json",
+        "ROBOT-KEY": process.env.FACTA_SRCC_POSTBACK_ROBOT_KEY,
+      },
+      data
+    );
   }
 }
 
