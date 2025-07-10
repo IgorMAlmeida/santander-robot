@@ -1,56 +1,74 @@
-import { Queue, Job } from 'bullmq';
+import { Queue } from 'bullmq';
 import IORedis from 'ioredis';
 
-const connection = new IORedis({
+let myQueue = null;
+
+if (process.env.USE_REDIS === 'true') {
+  const connection = new IORedis({
     host: process.env.REDIS_NAME_INSTANCIA,
     port: 6379,
   });
 
-const myQueue = new Queue('jobQueueSimulation', {
-  connection
-});
+  myQueue = new Queue('jobQueueSimulation', {
+    connection
+  });
+
+  console.log('✅ Redis conectado e fila inicializada');
+} else {
+  console.log('⚠️ Redis desabilitado por configuração');
+}
 
 export async function listarJobs() {
-  let waiting = await myQueue.getJobs(['waiting']);
-  let active = await myQueue.getJobs(['active']);
-  let completed = await myQueue.getJobs(['completed']);
-  let failed = await myQueue.getJobs(['failed']);
+  if (!myQueue) {
+    console.warn('⚠️ Redis desabilitado. listJobs não está disponível.');
+    return [];
+  }
 
-  return [
-    waiting = waiting,
-    active = active,
-    completed = completed,
-    failed = failed
-  ]
+  const waiting = await myQueue.getJobs(['waiting']);
+  const active = await myQueue.getJobs(['active']);
+  const completed = await myQueue.getJobs(['completed']);
+  const failed = await myQueue.getJobs(['failed']);
+
+  return {
+    waiting,
+    active,
+    completed,
+    failed
+  };
 }
 
 export async function listarJobId(id) {
-    const job = await myQueue.getJob(id);
-  
-    if (!job) {
-      console.log(`❌ Nenhum job encontrado com ID: ${id}`);
-      return;
-    }
-  
-    let state = await job.getState();
-    let result = await job.returnvalue;
-    let failedReason = job.failedReason;
-    let json = job.data;
-  
-    console.log(`🆔 ID: ${job.id}`);
-    console.log(`📌 Status: ${state}`);
-  
-    return [
-        state = state,
-        result = result,
-        failedReason = failedReason,
-        json = json
-    ]
-}
-  
-export async function removerJobPorId(id) {
+  if (!myQueue) {
+    console.warn('⚠️ Redis desabilitado. listarJobId não está disponível.');
+    return null;
+  }
+
   const job = await myQueue.getJob(id);
-  
+
+  if (!job) {
+    console.log(`❌ Nenhum job encontrado com ID: ${id}`);
+    return null;
+  }
+
+  const state = await job.getState();
+  const result = job.returnvalue;
+  const failedReason = job.failedReason;
+  const json = job.data;
+
+  console.log(`🆔 ID: ${job.id}`);
+  console.log(`📌 Status: ${state}`);
+
+  return { state, result, failedReason, json };
+}
+
+export async function removerJobPorId(id) {
+  if (!myQueue) {
+    console.warn('⚠️ Redis desabilitado. removerJobPorId não está disponível.');
+    return false;
+  }
+
+  const job = await myQueue.getJob(id);
+
   if (!job) {
     console.log(`❌ Job com ID ${id} não encontrado.`);
     return false;
@@ -62,11 +80,16 @@ export async function removerJobPorId(id) {
 }
 
 export async function removerJobsAntigos(dataLimite) {
+  if (!myQueue) {
+    console.warn('⚠️ Redis desabilitado. removerJobsAntigos não está disponível.');
+    return 0;
+  }
+
   const estados = ['completed', 'failed', 'waiting', 'active'];
   let removidos = 0;
 
   for (const estado of estados) {
-    const jobs = await myQueue.getJobs([estado], 0, 1000); // limite máximo de 1000 jobs por estado
+    const jobs = await myQueue.getJobs([estado], 0, 1000);
     for (const job of jobs) {
       if (job.timestamp < dataLimite.getTime()) {
         await job.remove();
@@ -79,5 +102,3 @@ export async function removerJobsAntigos(dataLimite) {
   console.log(`✅ Total de jobs removidos: ${removidos}`);
   return removidos;
 }
-
-  

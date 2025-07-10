@@ -1,6 +1,6 @@
 export default async function loginItauImovel(page) {
-  const username = process.env.ITAU_IMOVEL_LOGIN || 'juliana.soares@credifranco.com.br';
-  const password = process.env.ITAU_IMOVEL_PASS_LOGIN || 'Sucesso@2024';
+  const username = process.env.ITAU_IMOVEL_LOGIN;
+  const password = process.env.ITAU_IMOVEL_PASS_LOGIN;
 
   await page.waitForSelector('input[name="txtUsuario"]', { timeout: 10000 });
   await page.type('input[name="txtUsuario"]', username);

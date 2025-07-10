@@ -25,7 +25,7 @@ export default async function simulation(data) {
   
     const pagesBefore = await browser.pages();
     const page = pagesBefore[0];
-    const BRADESCO_IMOVEL_URL = (process.env.BRADESCO_IMOVEL_URL || 'https://wspf.banco.bradesco/wsImoveis/AreaRestrita/Default.aspx?ReturnUrl=%2fwsImoveis%2fAreaRestrita%2fConteudo%2fHome.aspx').replace(/"/g, '').trim();
+    const BRADESCO_IMOVEL_URL = (process.env.BRADESCO_IMOVEL_URL).replace(/"/g, '').trim();
 
     await page.goto(BRADESCO_IMOVEL_URL, { waitUntil: "domcontentloaded" });
     console.log("📄 Página carregada: ", BRADESCO_IMOVEL_URL);
@@ -69,7 +69,7 @@ export default async function simulation(data) {
         await selectClick(page, '#rdoFinanciarDespesas_0', 3000);
         await selectClick(page, '#chkDespesasItbi', 3000);
 
-        const valorFinal = await convertToNumber(data.input_value);
+        let valorFinal = await convertToNumber(data.input_value);
         const textoSpan = await page.$eval('#spnValorFinanciamento', el => el.innerText);
         const match = textoSpan.match(/R\$ ?([\d.,]+)/i);
     
@@ -152,11 +152,21 @@ export default async function simulation(data) {
           await typeInput(page, '#txtCADUOrgaoEmissor', 'SSP');
           await page.waitForSelector('#ddlCADUOrgaoEmissorUF', { visible: true });
           await page.select('#ddlCADUOrgaoEmissorUF', idUf);
-          await page.waitForSelector('#ddlCADUSexo', { visible: true });
-          await page.select('#ddlCADUSexo', data.gender);
-          await page.waitForSelector('#ddlCADUNacionalidade', { visible: true });
-          await page.select('#ddlCADUNacionalidade', '46');
-          await typeInput(page, '#txtCADUNomeMae', nomeFinal);
+
+          try {
+            await page.waitForSelector('#ddlCADUSexo', { visible: true });
+            await page.select('#ddlCADUSexo', data.gender);
+          } catch (navErr) {
+            console.log("Não pediu Gênero");
+          }
+
+          try {
+            await page.select('#ddlCADUNacionalidade', '46');
+            await typeInput(page, '#txtCADUNomeMae', nomeFinal);
+          } catch (navErr) {
+            console.log("Não pediu Nome da Mãe");
+          }
+
           await page.waitForSelector('#ddlCADUEstadoCivil', { visible: true });
           await page.select('#ddlCADUEstadoCivil', data.marital_status);
 
@@ -171,21 +181,16 @@ export default async function simulation(data) {
 
             await new Promise(resolve => setTimeout(resolve, 300));
             const primeiroValor = await page.$eval('#ddlCADUProfissaoOcupacao', select => {
-              return select.options[1].value; // A primeira opção (não vazia) é a de índice 1
+              return select.options[1].value;
             });
             await page.select('#ddlCADUProfissaoOcupacao', primeiroValor);
 
             if (!["6", "7", "8", "9", "10", "11", "12", "13", "2", "4"].includes(data.proof_income)) {
               console.log("Entrou no cargo" + data.proof_income);
-              // await page.waitForSelector('#ddlCADUCargo');
-              // await page.waitForFunction(() => {
-              //   const el = document.querySelector('#ddlCADUCargo');
-              //   return el && el.options.length > 1;
-              // }, { timeout: 15000 });
               await page.waitForSelector('#ddlCADUCargo');
 
               const primeiroValor = await page.$eval('#ddlCADUCargo', select => {
-                return select.options[1].value; // Pega a primeira opção válida
+                return select.options[1].value;
               });
               await page.select('#ddlCADUCargo', primeiroValor);
             }
