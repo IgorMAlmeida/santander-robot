@@ -1,4 +1,4 @@
-import { simulationQueue } from '../../../queue/simulationQueue.js';
+// import { simulationQueue } from '../../../queue/simulationQueue.js';
 import ControllerResponse from '../../utils/ControllerResponse.js';
 import consult from '../../services/Financiamento/BradescoImovel/consult.js';
 
@@ -10,11 +10,11 @@ export async function BradescoImovelStatus(req, res) {
     const state = await job.getState(simulationQueue, job.id);
     let result = job.returnvalue ?? null;
     if (state === 'failed' || (state === 'completed' && result == 'Teste')) {
-        console.log(`O job ${jobId} falhou, reiniciando...`);
+        // console.log(`O job ${jobId} falhou, reiniciando...`);
         
-        // Obter os dados do job original e adicionar novamente na fila
-        const data = job.data; // Dados do job original
-        const newJob = await simulationQueue.add('jobQueueSimulation', data);
+        // // Obter os dados do job original e adicionar novamente na fila
+        // const data = job.data; // Dados do job original
+        // const newJob = await simulationQueue.add('jobQueueSimulation', data);
     
         console.log(`Novo job adicionado com ID: ${newJob.id}`);
         newJobId = newJob.id;

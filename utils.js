@@ -1,145 +1,145 @@
-export async function getByXpath (page, xpath) {
-    const element = await page.$(`::-p-xpath(${xpath})`);
-    return element;
+export async function getByXpath(page, xpath) {
+  const element = await page.$(`::-p-xpath(${xpath})`);
+  return element;
 };
 
 export async function clickElementByXpath(page, xpath, timeout = 5000, waitUntil = 'domcontentloaded') {
-    const button = await page.waitForSelector(`::-p-xpath(${xpath})`, { timeout, waitUntil });
-    await button.click();
+  const button = await page.waitForSelector(`::-p-xpath(${xpath})`, { timeout, waitUntil });
+  await button.click();
 };
 
 export async function clickElementByXpathWithoutWait(page, xpath) {
-    await page.click(`::-p-xpath(${xpath})`);
+  await page.click(`::-p-xpath(${xpath})`);
 };
 
-export async function elementHover (page, xpath) {
-    await page.hover(`::-p-xpath(${xpath})`);
+export async function elementHover(page, xpath) {
+  await page.hover(`::-p-xpath(${xpath})`);
 };
 
-export async function sleep (timming) {
-    await new Promise(resolve => setTimeout(resolve, timming));
+export async function sleep(timming) {
+  await new Promise(resolve => setTimeout(resolve, timming));
 };
 
 export async function getElementText(page, selector) {
-    return page.$eval(selector, span => span.textContent);
+  return page.$eval(selector, span => span.textContent);
 }
 
 export async function checkElement(page, selector) {
-    try {
-        const element = await getByXpath(page, selector);
+  try {
+    const element = await getByXpath(page, selector);
 
-        if(!element) {
-            throw new Error('Element not found');
-        }
-
-        return true;
-    } catch (error) {
-        return false;
+    if (!element) {
+      throw new Error('Element not found');
     }
+
+    return true;
+  } catch (error) {
+    return false;
+  }
 }
 
 export async function getElementClass(page, selector) {
-    const element = await getByXpath(page, selector);
-    return element.evaluate(el => el.className);
+  const element = await getByXpath(page, selector);
+  return element.evaluate(el => el.className);
 }
 
 export async function blockUnnecessaryRequests(page) {
-    await page.setRequestInterception(true);
-    page.on('request', req => {
-        const resourceType = req.resourceType();
-        if (resourceType === 'image' || resourceType === 'font' || resourceType === 'stylesheet') {
-            req.abort();
-        } else {
-            req.continue();
-        }
-    });
+  await page.setRequestInterception(true);
+  page.on('request', req => {
+    const resourceType = req.resourceType();
+    if (resourceType === 'image' || resourceType === 'font' || resourceType === 'stylesheet') {
+      req.abort();
+    } else {
+      req.continue();
+    }
+  });
 }
 
 export async function awaitElement(page, selector) {
-    try{
-        const element = await page.waitForSelector(`xpath=${selector}`, { timeout: 1000 });
+  try {
+    const element = await page.waitForSelector(`xpath=${selector}`, { timeout: 1000 });
 
-        return {
-            status: true,
-            data: element
-        }
-    }catch (error) {
-        return {
-            status: false,
-            data: error
-        }
+    return {
+      status: true,
+      data: element
     }
+  } catch (error) {
+    return {
+      status: false,
+      data: error
+    }
+  }
 }
 
 export async function getElementTextByXpath(page, xpath, timeout = 5000) {
-    const element = await getElementByXpath(page, xpath, timeout);
-    return element.evaluate(el => el.textContent);
+  const element = await getElementByXpath(page, xpath, timeout);
+  return element.evaluate(el => el.textContent);
 }
 
 export async function checkElementAndText(page, selector) {
-    try {
-        const element = await page.$(`::-p-xpath(${selector})`);
+  try {
+    const element = await page.$(`::-p-xpath(${selector})`);
 
-        if(!element) {
-            throw new Error('Element not found for selector: ' + selector);
-        }
-
-        const textoElemento = await element.evaluate(el => el.textContent);
-        return { status: true, text: textoElemento };        
-    } catch (error) {
-        return {status: false, text: error };
+    if (!element) {
+      throw new Error('Element not found for selector: ' + selector);
     }
+
+    const textoElemento = await element.evaluate(el => el.textContent);
+    return { status: true, text: textoElemento };
+  } catch (error) {
+    return { status: false, text: error };
+  }
 }
 
 export async function checkElementAndValue(page, selector) {
-    try {
-        const element = await page.$(`::-p-xpath(${selector})`);
+  try {
+    const element = await page.$(`::-p-xpath(${selector})`);
 
-        if(!element) {
-            throw new Error('Element not found for selector: ' + selector);
-        }
-
-        const textoElemento = await element.evaluate(el => el.value);
-        return { status: true, text: textoElemento };        
-    } catch (error) {
-        return {status: false, text: error };
+    if (!element) {
+      throw new Error('Element not found for selector: ' + selector);
     }
+
+    const textoElemento = await element.evaluate(el => el.value);
+    return { status: true, text: textoElemento };
+  } catch (error) {
+    return { status: false, text: error };
+  }
 }
 
 export function replaceValues(value) {
-    if (value.includes('.')) {
-        let newValue = value.replace(/\./g, '');
-        return newValue.replace(/,/g, '.');
-    }
+  if (value.includes('.')) {
+    let newValue = value.replace(/\./g, '');
+    return newValue.replace(/,/g, '.');
+  }
 }
 
 export async function typeByXpath(page, xpath, value, timeout = 5000) {
-    const element = await page.waitForSelector(`::-p-xpath(${xpath})`, { timeout });
-    await element.click({ clickCount: 3 });
-    await element.press("Backspace");
+  const element = await page.waitForSelector(`::-p-xpath(${xpath})`, { timeout });
+  await element.click({ clickCount: 3 });
+  await element.press("Backspace");
 
-    for (const char of value) {
-        await element.type(char, { delay: 100 });
-        await sleep(50);
-    }
+  for (const char of value) {
+    await element.type(char, { delay: 100 });
+    await sleep(50);
+  }
 }
 
 export async function getElementByXpath(page, xpath, timeout = 5000) {
-    const element = await page.waitForSelector(`::-p-xpath(${xpath})`, { timeout });
-    return element;
+  const element = await page.waitForSelector(`::-p-xpath(${xpath})`, { timeout });
+  return element;
 }
 export async function getAltTextByXPath(page, xpath) {
-    try {
-        const elements = await page.$$(`xpath/${xpath}`);
-        
-        if (elements.length > 0) {
-            return await page.evaluate(img => img.getAttribute('alt'), elements[0]);
-        }
-        return null;
-    } catch (error) {
-        console.error(`Erro ao buscar elemento com XPath ${xpath}:`, error);
-        return null;
+  try {
+    const elements = await page.$$(`xpath/${xpath}`);
+
+    if (elements.length > 0) {
+      return await page.evaluate(img => img.getAttribute('alt'), elements[0]);
     }
+    return null;
+  } catch (error) {
+    console.error(`Erro ao buscar elemento com XPath ${xpath}:`, error);
+    return null;
+  }
 }
 export async function getLinkByXPath(page, xpath) {
   const elements = await page.$$(`xpath/${xpath}`);
@@ -162,46 +162,95 @@ export async function getLinkByXPath(page, xpath) {
 
 
 export async function typeCPFWithMask(page, xpath, cpf) {
-    await page.evaluate((xpath) => {
-        const input = document.evaluate(
-            xpath,
-            document,
-            null,
-            XPathResult.FIRST_ORDERED_NODE_TYPE,
-            null
-        ).singleNodeValue;
-        input.value = '';
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-    }, xpath);
+  await page.evaluate((xpath) => {
+    const input = document.evaluate(
+      xpath,
+      document,
+      null,
+      XPathResult.FIRST_ORDERED_NODE_TYPE,
+      null
+    ).singleNodeValue;
+    input.value = '';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  }, xpath);
 
-    const formattedCPF = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  const formattedCPF = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
 
-    await page.evaluate((xpath, value) => {
-        const input = document.evaluate(
-            xpath,
-            document,
-            null,
-            XPathResult.FIRST_ORDERED_NODE_TYPE,
-            null
-        ).singleNodeValue;
-        input.value = value;
-        input.dispatchEvent(new Event('focus', { bubbles: true }));
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-        input.dispatchEvent(new Event('change', { bubbles: true }));
-        input.dispatchEvent(new Event('blur', { bubbles: true }));
-    }, xpath, formattedCPF);
+  await page.evaluate((xpath, value) => {
+    const input = document.evaluate(
+      xpath,
+      document,
+      null,
+      XPathResult.FIRST_ORDERED_NODE_TYPE,
+      null
+    ).singleNodeValue;
+    input.value = value;
+    input.dispatchEvent(new Event('focus', { bubbles: true }));
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+    input.dispatchEvent(new Event('blur', { bubbles: true }));
+  }, xpath, formattedCPF);
 
-    const insertedValue = await page.evaluate((xpath) => {
-        return document.evaluate(
-            xpath,
-            document,
-            null,
-            XPathResult.FIRST_ORDERED_NODE_TYPE,
-            null
-        ).singleNodeValue.value;
-    }, xpath);
+  const insertedValue = await page.evaluate((xpath) => {
+    return document.evaluate(
+      xpath,
+      document,
+      null,
+      XPathResult.FIRST_ORDERED_NODE_TYPE,
+      null
+    ).singleNodeValue.value;
+  }, xpath);
 
-    if (insertedValue !== formattedCPF) {
-        throw new Error(`Falha na formatação do CPF. Esperado: ${formattedCPF}, Obtido: ${insertedValue}`);
-    }
+  if (insertedValue !== formattedCPF) {
+    throw new Error(`Falha na formatação do CPF. Esperado: ${formattedCPF}, Obtido: ${insertedValue}`);
+  }
+}
+
+export async function getTableByXpath(page, xpath) {
+  await page.waitForSelector(`::-p-xpath(${xpath})`, { timeout: 5000 });
+
+  const rows = await page.$$(`::-p-xpath(//table/tbody/tr)`);
+  const certificates = [];
+
+  for (const row of rows) {
+    const cells = await row.$$('td');
+
+    const certificadora = await cells[0].evaluate(el => el.textContent.trim());
+    const nomeAgente = await cells[1].evaluate(el => el.textContent.trim());
+    const tipoCertificado = await cells[2].evaluate(el => el.textContent.trim());
+    const certificado = await cells[3].evaluate(el => el.textContent.trim());
+    const numeroCertificado = await cells[4].evaluate(el => el.textContent.trim());
+    const dataExame = await cells[5].evaluate(el => el.textContent.trim());
+    const dataValidade = await cells[6].evaluate(el => el.textContent.trim());
+
+    const spans = await cells[7].$$('span');
+    const situacao = spans[1]
+      ? await spans[1].evaluate(el => el.textContent.trim())
+      : '';
+
+
+    certificates.push({
+      'Certificadora': certificadora,
+      'NomeAgente': nomeAgente,
+      'TipoCertificado': tipoCertificado,
+      'Certificado': certificado,
+      'NúmeroCertificado': numeroCertificado,
+      'DataExame': dataExame,
+      'DataValidade': dataValidade,
+      'Situacao': situacao
+    });
+    
+    console.log({
+      'Certificadora': certificadora,
+      'NomeAgente': nomeAgente,
+      'TipoCertificado': tipoCertificado,
+      'Certificado': certificado,
+      'NúmeroCertificado': numeroCertificado,
+      'DataExame': dataExame,
+      'DataValidade': dataValidade,
+      'Situação': situacao
+    });
+  }
+
+  return certificates;
 }

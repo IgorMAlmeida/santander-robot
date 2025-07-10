@@ -1,18 +1,16 @@
 import dotenv from 'dotenv';
 import { 
-  UnlockController,
-  // UnlockMaster
-} from '../services/BMG/UnlockUsers/UnlockController.js';
+  CreateController,
+}
+  from '../services/BMG/CreateUsers/CreateController.js';
 dotenv.config();
 
 const bankUnlock = {
-  // MASTER:() => UnlockMaster(),
-  // BMG:() => UnlockController(),
-  BMG: (params) => UnlockController(params),
+  BMG: (params) => CreateController(params),
 };
 
-export async function UnlockBankUser(consultParams) {
-  console.log("Iniciando processo de desbloqueio de usuário bancário...",consultParams);
+export async function CreateBankUser(consultParams) {
+  console.log("Iniciando processo de criação de usuário bancário...",consultParams);
 
   if (!consultParams || !consultParams.bank) {
     console.error("Parâmetros de consulta inválidos ou banco não especificado.");
@@ -25,7 +23,7 @@ export async function UnlockBankUser(consultParams) {
 
   if (typeof unlockFunction === 'function') {
     try {
-      return await unlockFunction(consultParams);
+      return await CreateController(consultParams);
     } catch (error) {
       console.error(`Erro ao executar a função de desbloqueio para o banco ${bankName}:`, error.message);
       throw error;

@@ -1,5 +1,5 @@
-import { Queue } from 'bullmq';
-import IORedis from 'ioredis';
+// import { Queue } from 'bullmq';
+// import IORedis from 'ioredis';
 
 let simulationQueue = null;
 

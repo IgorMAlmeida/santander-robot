@@ -1,4 +1,4 @@
-import { simulationQueue } from '../../../queue/simulationQueue.js';
+// import { simulationQueue } from '../../../queue/simulationQueue.js';
 import consult from '../../services/Financiamento/ItauImovel/consult.js';
 import ControllerResponse from '../../utils/ControllerResponse.js';
 
@@ -10,14 +10,14 @@ export async function ItauImovelStatus(req, res) {
     let state = await job.getState(simulationQueue, job.id);
     let result = job.returnvalue ?? null;
     if (state === 'failed' || (state === 'completed' && (result == null || result == 'Teste'))) {
-        console.log(`O job ${jobId} falhou, reiniciando...`);
+        // console.log(`O job ${jobId} falhou, reiniciando...`);
         
-        const data = job.data;
-        const newJob = await simulationQueue.add('jobQueueSimulation', data);
+        // const data = job.data;
+        // const newJob = await simulationQueue.add('jobQueueSimulation', data);
     
-        console.log(`Novo job adicionado com ID: ${newJob.id}`);
-        newJobId = newJob.id;
-        result = newJobId;
+        // console.log(`Novo job adicionado com ID: ${newJob.id}`);
+        // newJobId = newJob.id;
+        // result = newJobId;
     } else if (state === 'completed') {
         const dados = await consult(result.Proposta);
         result.StatusFaseProposta = dados.response.StatusFaseProposta;

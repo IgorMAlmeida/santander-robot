@@ -21,6 +21,7 @@ import { JobGetList, JobGetId } from './controllers/Financial/JobGetController.j
 import { DaycovalImovelStatus } from './controllers/Financial/DaycovalImovelStatusController.js';
 import { DaycovalImovelFinancial } from './controllers/Financial/DaycovalImovelController.js';
 import { consultOleUserBank } from './jobs/consultOleUserBank.js';
+import { CreateBankUser } from './controllers/CreateBankUser.js';
 
 const upload = multer({ dest: 'uploads/' });
 const router = express.Router();
@@ -132,6 +133,25 @@ router.post('/api/consult/portal_consig', upload.none(), async (req, res) => {
 router.post('/api/unlock_user_bank', upload.none(), async (req, res) => {
     try {
         const response = await UnlockBankUser(req?.body);
+
+        if (!response.status) {
+            throw new Error(response.response);
+        }
+
+        res.status(200).json(response);
+    } catch (err) {
+        console.error('Erro ao processar a solicitação:', err);
+        res.status(400).json({
+            status: false,
+            response: err.message,
+            data: null
+        });
+    }
+});
+
+router.post('/api/create_user_bank', upload.none(), async (req, res) => {
+    try {
+        const response = await CreateBankUser(req?.body);
 
         if (!response.status) {
             throw new Error(response.response);
