@@ -25,6 +25,10 @@ export default async function srcc(people) {
     
     const peopleWithRegistrations = await processRegistrations(people);
 
+    if(peopleWithRegistrations.length === 0) {
+      return [];
+    }
+
     await sendConsults(peopleWithRegistrations, cookie);
 
     await browser.close();
@@ -47,7 +51,9 @@ async function processRegistrations(people) {
     peopleNeedingRegistration.map((person) => person.cpf)
   );
 
-  const peopleWithRegistrations = peopleNeedingRegistration.map((person) => {
+  const peopleWasFound = peopleNeedingRegistration.filter(person => registrations?.[person.cpf] && registrations[person.cpf] !== "Não encontrado");
+
+  const peopleWithRegistrations = peopleWasFound.map((person) => {
     return {
       ...person,
       registration: registrations[person.cpf],
@@ -90,11 +96,11 @@ async function verifySRCC(people, cookie) {
 
     const data = {
       cpf: person.cpf,
-      srcc: consult.status !== "Operação passível de comissão",
+      srcc: consult.status !== "Operação passível de comissão" ? "S" : "N",
     };
 
     await APIService.post(
-      process.env.FACTA_SRCC_POSTBACK_URL,
+      `${process.env.FACTA_SRCC_POSTBACK_URL}/${person.cpf}`,
       {
         "Content-Type": "application/json",
         "ROBOT-KEY": process.env.FACTA_SRCC_POSTBACK_ROBOT_KEY,
