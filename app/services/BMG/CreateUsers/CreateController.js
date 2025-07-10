@@ -95,7 +95,10 @@ console.log(configPath);
 
     return {
       status: true,
-      response: checkEmailPass.message,
+      response:{
+          certificates: certificates.data,
+          user: createUser.message
+        },
       data: 'Usuário criado com sucesso.',
     };
   } catch (err) {

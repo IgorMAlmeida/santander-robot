@@ -103,8 +103,6 @@ export async function loginPortal(page) {
     fs.unlinkSync(filePath);
     await sleep(2000);
 
-
-
     await sleep(1000);
     const checkErrorLogin = await checkElementAndText(page, '//*[@id="msg-error"]');
     if (checkErrorLogin.status) {

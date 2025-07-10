@@ -6,7 +6,9 @@ import { loginPortal } from '../LoginPortal.js';
 import { UnlockUser } from './UnlockUser.js';
 import { blockUnnecessaryRequests, sleep } from '../../../../utils.js';
 import { logoutBmg } from '../LogoutBMG.js';
-import { checkInboxEmail } from './CheckInboxEmail.js';
+import dotenv from 'dotenv';
+import { checkInboxEmail } from '../../CheckEmailUnlockCreateUsers/CheckInbox.js';
+dotenv.config();
 
 puppeteer.use(StealthPlugin());
 puppeteer.use(AdblockerPlugin({ blockTrackers: true }));
@@ -50,7 +52,17 @@ export async function UnlockController(params) {
     await logoutBmg(unlock.data);
     
     console.log('Desbloqueio concluido com sucesso. Iniciando checagem de email...');
-    const checkEmailPass = await checkInboxEmail(loginData.data, params);
+    const emailParams = {
+      email: process.env.EMAIL_SUPORTE_LOGIN,
+      emailPassword: process.env.PASS_SUPORTE_LOGIN,
+      emailHost: process.env.IMAP_HOST,
+      emailPort: parseInt(process.env.IMAP_PORT),
+      emailSubject: 'Solicitação de nova senha BMG Consig',
+      emailSender: process.env.BMG_RECOVERY_EMAIL_SENDER,
+      emailBankText: 'BMG Consig',
+      ...params
+    };
+    const checkEmailPass = await checkInboxEmail(loginData.data, emailParams);
     if(!checkEmailPass.status) {
       throw new Error(checkEmailPass.data);
     }

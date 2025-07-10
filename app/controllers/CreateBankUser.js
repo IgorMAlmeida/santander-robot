@@ -1,8 +1,7 @@
 import dotenv from 'dotenv';
 import { 
   CreateController,
-}
-  from '../services/BMG/CreateUsers/CreateController.js';
+}from '../services/BMG/CreateUsers/CreateController.js';
 dotenv.config();
 
 const bankUnlock = {
