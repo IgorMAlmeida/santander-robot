@@ -2,10 +2,10 @@ import puppeteer from 'puppeteer-extra';
 import { executablePath } from 'puppeteer';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import AdblockerPlugin from 'puppeteer-extra-plugin-adblocker';
-import { loginPortal } from './LoginPortal.js'; 
+import { loginPortal } from '../LoginPortal.js'; 
 import { UnlockUser } from './UnlockUser.js';
 import { blockUnnecessaryRequests, sleep } from '../../../../utils.js';
-import { logoutBmg } from './LogoutBMG.js';
+import { logoutBmg } from '../LogoutBMG.js';
 import { checkInboxEmail } from './CheckInboxEmail.js';
 
 puppeteer.use(StealthPlugin());
@@ -22,7 +22,7 @@ export async function UnlockController(params) {
       '--disable-software-rasterizer',
       '--disable-dev-shm-usage',
     ],
-    headless: true,
+    headless: false,
     ignoreDefaultArgs: ['--disable-extensions', '--enable-automation'],
     executablePath: executablePath()  
   });
