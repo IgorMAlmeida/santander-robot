@@ -2,8 +2,8 @@ import dotenv from 'dotenv';
 dotenv.config();
 import imap from 'imap-simple';
 import { simpleParser } from 'mailparser';
-import { sleep } from '../../../utils.js';
-import { ProcessResetPass } from '../BMG/ProcessResetPass.js';
+import { sleep } from '../../../../utils.js';
+import { ProcessResetPass } from '../../BMG/ProcessResetPass.js';
 
 const processResetPass = {
   BMG: (page, parsed, params) => ProcessResetPass(page, parsed, params),
@@ -24,7 +24,7 @@ const colors = {
   bgYellow: '\x1b[43m',
   bgBlue: '\x1b[44m'
 };
-export async function checkInboxEmail(page, params) {
+export async function CheckInbox(page, params) {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
   const imapDate = () => {
     const today = new Date();
