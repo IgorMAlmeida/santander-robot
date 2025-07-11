@@ -15,7 +15,6 @@ export async function CertificatesConsult(page, params) {
     console.log('Iniciando consulta de certificados para o CPF:', cpf);
     await page.goto(url, { waitUntil: 'networkidle0' });
     await AnticaptchaExtension();
-    // await sleep(100000);
     await sleep(1000);
     await page.type('::-p-xpath(//*[@id="mat-input-0"])', cpf);
     await sleep(1000);

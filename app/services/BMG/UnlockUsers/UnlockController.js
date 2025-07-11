@@ -6,7 +6,9 @@ import { loginPortal } from '../LoginPortal.js';
 import { UnlockUser } from './UnlockUser.js';
 import { blockUnnecessaryRequests, sleep } from '../../../../utils.js';
 import { logoutBmg } from '../LogoutBMG.js';
-import { checkInboxEmail } from './CheckInboxEmail.js';
+import dotenv from 'dotenv';
+import { CheckInbox } from '../../Common/Email/CheckInbox.js';
+dotenv.config();
 
 puppeteer.use(StealthPlugin());
 puppeteer.use(AdblockerPlugin({ blockTrackers: true }));
@@ -31,26 +33,37 @@ export async function UnlockController(params) {
   await blockUnnecessaryRequests(page);
 
   try {
-    await sleep(1000);
-    console.log('Iniciando Login...');
-    const loginData = await loginPortal(page);
-    if (!loginData.status) {
-      if (loginData.isPortalError) {
-        await browser.close();
-      }
-      throw new Error(loginData.data);
-    }
+    // await sleep(1000);
+    // console.log('Iniciando Login...');
+    // const loginData = await loginPortal(page);
+    // if (!loginData.status) {
+    //   if (loginData.isPortalError) {
+    //     await browser.close();
+    //   }
+    //   throw new Error(loginData.data);
+    // }
 
-    console.log(params)
-    console.log('Login concluido com sucesso. Iniciando desbloqueio...');
-    const unlock = await UnlockUser(loginData.data, params);
-    if(!unlock.status) {
-      throw new Error(unlock.data);
-    }
-    await logoutBmg(unlock.data);
+    // console.log(params)
+    // console.log('Login concluido com sucesso. Iniciando desbloqueio...');
+    // const unlock = await UnlockUser(loginData.data, params);
+    // if(!unlock.status) {
+    //   throw new Error(unlock.data);
+    // }
+    // await logoutBmg(unlock.data);
     
     console.log('Desbloqueio concluido com sucesso. Iniciando checagem de email...');
-    const checkEmailPass = await checkInboxEmail(loginData.data, params);
+    const emailParams = {
+      email: process.env.EMAIL_SUPORTE_LOGIN,
+      emailPassword: process.env.PASS_SUPORTE_LOGIN,
+      emailHost: process.env.IMAP_HOST,
+      emailPort: parseInt(process.env.IMAP_PORT),
+      emailSubject: 'Solicitação de nova senha BMG Consig',
+      emailSender: process.env.BMG_RECOVERY_EMAIL_SENDER,
+      emailBankText: 'BMG Consig',
+      ...params
+    };
+    // const checkEmailPass = await checkInboxEmail(loginData.data, emailParams);
+    const checkEmailPass = await CheckInbox(page, emailParams);
     if(!checkEmailPass.status) {
       throw new Error(checkEmailPass.data);
     }

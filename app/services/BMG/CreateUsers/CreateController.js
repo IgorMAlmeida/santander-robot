@@ -4,11 +4,11 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import AdblockerPlugin from 'puppeteer-extra-plugin-adblocker';
 import { blockUnnecessaryRequests, sleep } from '../../../../utils.js';
 import { logoutBmg } from '../LogoutBMG.js';
-import { CertificatesConsult } from './CertificatesConsult.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { loginPortal } from '../LoginPortal.js';
 import { CreateUserService } from './CreateUserService.js';
+import { CertificatesConsult } from '../../Common/Certificates/CertificatesConsult.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -95,7 +95,10 @@ console.log(configPath);
 
     return {
       status: true,
-      response: checkEmailPass.message,
+      response:{
+          certificates: certificates.data,
+          user: createUser.message
+        },
       data: 'Usuário criado com sucesso.',
     };
   } catch (err) {

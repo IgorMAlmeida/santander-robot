@@ -8,6 +8,12 @@ export async function clickElementByXpath(page, xpath, timeout = 5000, waitUntil
   await button.click();
 };
 
+export async function clickCheckboxByValue(page, value, timeout = 5000, waitUntil = 'domcontentloaded') {
+  const xpath = `//input[@type='checkbox' and @value='${value}']`;
+  const checkbox = await page.waitForSelector(`::-p-xpath(${xpath})`, { timeout, waitUntil });
+  await checkbox.click();
+}
+
 export async function clickElementByXpathWithoutWait(page, xpath) {
   await page.click(`::-p-xpath(${xpath})`);
 };
