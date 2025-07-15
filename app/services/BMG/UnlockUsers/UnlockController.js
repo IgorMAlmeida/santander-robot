@@ -33,23 +33,23 @@ export async function UnlockController(params) {
   await blockUnnecessaryRequests(page);
 
   try {
-    // await sleep(1000);
-    // console.log('Iniciando Login...');
-    // const loginData = await loginPortal(page);
-    // if (!loginData.status) {
-    //   if (loginData.isPortalError) {
-    //     await browser.close();
-    //   }
-    //   throw new Error(loginData.data);
-    // }
+    await sleep(1000);
+    console.log('Iniciando Login...');
+    const loginData = await loginPortal(page);
+    if (!loginData.status) {
+      if (loginData.isPortalError) {
+        await browser.close();
+      }
+      throw new Error(loginData.data);
+    }
 
-    // console.log(params)
-    // console.log('Login concluido com sucesso. Iniciando desbloqueio...');
-    // const unlock = await UnlockUser(loginData.data, params);
-    // if(!unlock.status) {
-    //   throw new Error(unlock.data);
-    // }
-    // await logoutBmg(unlock.data);
+    console.log(params)
+    console.log('Login concluido com sucesso. Iniciando desbloqueio...');
+    const unlock = await UnlockUser(loginData.data, params);
+    if(!unlock.status) {
+      throw new Error(unlock.data);
+    }
+    await logoutBmg(unlock.data);
     
     console.log('Desbloqueio concluido com sucesso. Iniciando checagem de email...');
     const emailParams = {
@@ -62,8 +62,7 @@ export async function UnlockController(params) {
       emailBankText: 'BMG Consig',
       ...params
     };
-    // const checkEmailPass = await checkInboxEmail(loginData.data, emailParams);
-    const checkEmailPass = await CheckInbox(page, emailParams);
+    const checkEmailPass = await checkInboxEmail(loginData.data, emailParams);
     if(!checkEmailPass.status) {
       throw new Error(checkEmailPass.data);
     }
