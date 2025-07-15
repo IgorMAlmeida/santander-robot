@@ -4,7 +4,7 @@ import {
 }from '../services/BMG/CreateUsers/CreateController.js';
 dotenv.config();
 
-const bankUnlock = {
+const bankCreate = {
   BMG: (params) => CreateController(params),
 };
 
@@ -17,14 +17,14 @@ export async function CreateBankUser(consultParams) {
   }
 
   const bankName = String(consultParams.bank).toUpperCase();
-  const unlockFunction = bankUnlock[bankName];
-  console.log(`Função de desbloqueio encontrada para o banco: ${bankName}`, unlockFunction);
+  const createFunction = bankCreate[bankName];
+  console.log(`Função de desbloqueio encontrada para o banco: ${bankName}`, CreateController);
 
-  if (typeof unlockFunction === 'function') {
+  if (typeof createFunction === 'function') {
     try {
       return await CreateController(consultParams);
     } catch (error) {
-      console.error(`Erro ao executar a função de desbloqueio para o banco ${bankName}:`, error.message);
+      console.error(`Erro ao executar a função de desbloqueio para o banco ${bankName}:`, error.response);
       throw error;
     }
   } else {

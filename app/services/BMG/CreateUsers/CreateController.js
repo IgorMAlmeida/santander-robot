@@ -9,17 +9,17 @@ import { fileURLToPath } from 'url';
 import { loginPortal } from '../LoginPortal.js';
 import { CreateUserService } from './CreateUserService.js';
 import { CertificatesConsult } from '../../Common/Certificates/CertificatesConsult.js';
+import { CheckInbox } from '../../Common/Email/CheckInbox.js';
+import { CertificatesError } from '../../../errors/CertificatesError.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const configPath = path.join(__dirname, '../../Anticaptcha/anticaptcha-plugin');
 
-
 puppeteer.use(StealthPlugin());
 puppeteer.use(AdblockerPlugin({ blockTrackers: true }));
 
 export async function CreateController(params) {
-console.log(configPath);
 
   console.log(`Desbloqueando usuário para o banco Master com parâmetros:`);
   const browser = await puppeteer.launch({
@@ -60,57 +60,99 @@ console.log(configPath);
     ],
     headless: false,
     ignoreDefaultArgs: ['--disable-extensions', '--enable-automation'],
-    executablePath: executablePath()  
+    executablePath: executablePath()
   });
 
   const page = await browser.newPage();
   // await blockUnnecessaryRequests(page);
+  let logoutData = {status:false, data:""};
+  let loginControl = false;
 
   try {
     await sleep(1000);
     console.log('Iniciando Verificação de certificados...');
-    // const certificates = await CertificatesConsult(page, params);
-    // if(!certificates.status){
-    //   throw new Error(certificates.data);
-    // }
+    const certificates = await CertificatesConsult(page, params);
+    if (!certificates.status) {
+      if (certificates.isCertificateError) {
+        throw new CertificatesError(certificates.message, certificates.data);
+      }
+      throw new Error(certificates.data);
+    }
 
     console.log("Certificados verificados. Iniciando Login BMG");
     const loginBMG = await loginPortal(page);
     if (!loginBMG.status) {
       if (loginBMG.isPortalError) {
-        // await browser.close();
+        await browser.close();
       }
       throw new Error(loginBMG.data);
     }
-
-    const createUser = CreateUserService(page, params);
-    if(!createUser.status){
+    loginControl = true;
+    const createUser = await CreateUserService(loginBMG.data, params);
+    if (!createUser.status) {
       throw new Error(createUser.data);
     }
 
+    const { create_user_page, ...userData } = createUser.data;
+    logoutData = await logoutBmg(page);
 
+    console.log('Criacao concluido com sucesso. Iniciando checagem de email...');
+    const emailParams = {
+      email: process.env.EMAIL_SUPORTE_LOGIN,
+      emailPassword: process.env.PASS_SUPORTE_LOGIN,
+      emailHost: process.env.IMAP_HOST,
+      emailPort: parseInt(process.env.IMAP_PORT),
+      emailSubject: process.env.BMG_FIRST_ACCESS_EMAIL_SUBJECT,
+      emailSender: process.env.BMG_RECOVERY_EMAIL_SENDER,
+      emailBankText: 'BMG Consig',
+      user: userData.bank_user,
+      ...params,
+    };
 
+    await sleep(5000);
+    const checkEmailResult = await CheckInbox(page, emailParams);
+    if (!checkEmailResult.status) {
+      throw new Error(checkEmailResult.data);
+    }
 
-    await sleep(1000);
+    const {
+      pageEmail = null,
+      user = null,
+      pass = null
+    } = checkEmailResult.data || {};
 
+    if (!user || !pass) {
+      throw new Error('Falha ao obter dados do usuário ou senha');
+    }
+    const { page: Emailpage, ...userDataClean } = userData;
+
+    await browser.close();
     return {
       status: true,
-      response:{
-          certificates: certificates.data,
-          user: createUser.message
-        },
-      data: 'Usuário criado com sucesso.',
+      response: 'Usuário criado com sucesso.',
+      data: {
+        user_data: [
+          {
+            ...userDataClean,
+            user: user,
+            pass: pass
+          }
+        ],
+        certificates: certificates.data,
+      },
     };
   } catch (err) {
     await sleep(1000);
-    // await logoutBmg(page);
+    !logoutData.status && loginControl ? await logoutBmg(page): '';
     await sleep(1000);
-    // await browser.close();
+    await browser.close();
+    const isCertificateError = err instanceof CertificatesError;
 
     return {
       status: false,
       response: err.message,
-      data: null
+      data: isCertificateError ? err.data : null,
+      isCertificateError: isCertificateError
     };
   }
 }

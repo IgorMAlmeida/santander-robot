@@ -1,4 +1,5 @@
 export async function ExtractRecoveryLink(emailContent) {
+  console.log("Email content: ", emailContent);
   const urlPatterns = [
     /www\.bmgconsig\.com\.br\/ResetSenha\?[^ \n\r\t<>"]+/gi,
     /https?:\/\/[^\s]*senha[^\s]*/i,

@@ -22,8 +22,7 @@ export async function logoutBmg(page) {
 
     return { status: true, message: 'sucesso' }
   } catch (erro) {
-    console.log('cai no erro', erro);
-    // await sleep(5000);
+    console.log('cai no erro do logout', erro);
     return { status: false, message: erro }
   }
 }
