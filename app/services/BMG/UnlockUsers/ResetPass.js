@@ -12,7 +12,8 @@ export async function resetPass(page, params, recoveryLink) {
       await sleep(1000);
       if (
         message.includes('A nova senha deve ser diferente das 5 últimas alterações') ||
-        message.includes('Não é permitido sequêncial numérico na composição da senha.')
+        message.includes('Não é permitido sequêncial numérico na composição da senha.') ||
+        message.includes('invalido')
       ) {
 
         console.log(`Tentativa ${attempts + 1}: ${message}`);
@@ -114,8 +115,12 @@ export async function resetPass(page, params, recoveryLink) {
     console.log('Senha redefinida com sucesso. Retornando:', currentPassword);
     return {
       status: true,
-      data: page,
-      message: `Usuario desbloqueado e senha resetada com sucesso: ${currentPassword} - ${params.user}`
+      data: {
+        page,
+        user:params.user,
+        pass:currentPassword
+      },
+      message: 'Senha redefinida com sucesso.'
     };
   } catch (error) {
     console.error('Error during resetting password:', error);

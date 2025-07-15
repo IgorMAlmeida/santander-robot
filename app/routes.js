@@ -154,6 +154,13 @@ router.post('/api/create_user_bank', upload.none(), async (req, res) => {
         const response = await CreateBankUser(req?.body);
 
         if (!response.status) {
+            if(response.isCertificateError){
+                return res.status(400).json({
+                    status: false,
+                    response: response.response || null,
+                    data: response.data || null
+                });
+            }
             throw new Error(response.response);
         }
 
