@@ -14,6 +14,24 @@ export async function clickCheckboxByValue(page, value, timeout = 5000, waitUnti
   await checkbox.click();
 }
 
+export async function selectOptionByXpath(page, xpath, value) {
+  await page.evaluate(() => {
+    const select = document.querySelector(
+      `::-p-xpath(${xpath})`
+    );
+    select.value = value;
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+}
+
+export async function pasteValueByXpath(page, xpath, value) {
+  await page.evaluate(() => {
+    const input = document.querySelector(`::-p-xpath(${xpath})`);
+    input.value = value;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+}
+
 export async function clickElementByXpathWithoutWait(page, xpath) {
   await page.click(`::-p-xpath(${xpath})`);
 };
