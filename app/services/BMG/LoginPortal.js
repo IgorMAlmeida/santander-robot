@@ -87,21 +87,10 @@ export async function loginPortal(page) {
     await page.type('#captcha', text);
     console.log('Captcha solved:', text);
 
-    page.on('dialog', async dialog => {
-      console.log('Alert detectado:', dialog.message());
-      if (dialog.message().includes('A sua senha está próxima de expirar')) {
-        console.log('Alert de senha próxima de expirar detectado');
-        await dialog.accept();
-      } else {
-        await dialog.accept();
-      }
-    });
-
     await sleep(1000);
     const { alertDetected, alertMessage } = await handleLoginWithAlert(page);
     // await clickElementByXpath(page, '//*[@id="bt-login"]');
     fs.unlinkSync(filePath);
-    await sleep(2000);
 
     await sleep(1000);
     const checkErrorLogin = await checkElementAndText(page, '//*[@id="msg-error"]');

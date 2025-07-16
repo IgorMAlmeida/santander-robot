@@ -264,17 +264,8 @@ export async function getTableByXpath(page, xpath) {
       'Situacao': situacao
     });
     
-    console.log({
-      'Certificadora': certificadora,
-      'NomeAgente': nomeAgente,
-      'TipoCertificado': tipoCertificado,
-      'Certificado': certificado,
-      'NúmeroCertificado': numeroCertificado,
-      'DataExame': dataExame,
-      'DataValidade': dataValidade,
-      'Situação': situacao
-    });
   }
-
+  
+  console.log(certificates);
   return certificates;
 }

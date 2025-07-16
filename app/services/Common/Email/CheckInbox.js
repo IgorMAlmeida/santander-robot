@@ -4,26 +4,12 @@ import imap from 'imap-simple';
 import { simpleParser } from 'mailparser';
 import { sleep } from '../../../../utils.js';
 import { ProcessResetPass } from '../../BMG/ProcessResetPass.js';
+import { colors } from '../../../helpers/Colors.js';
 
 const processResetPass = {
   BMG: (page, parsed, params) => ProcessResetPass(page, parsed, params),
 }
-const colors = {
-  reset: '\x1b[0m',
-  bright: '\x1b[1m',
-  dim: '\x1b[2m',
-  red: '\x1b[31m',
-  green: '\x1b[32m',
-  yellow: '\x1b[33m',
-  blue: '\x1b[34m',
-  magenta: '\x1b[35m',
-  cyan: '\x1b[36m',
-  white: '\x1b[37m',
-  bgRed: '\x1b[41m',
-  bgGreen: '\x1b[42m',
-  bgYellow: '\x1b[43m',
-  bgBlue: '\x1b[44m'
-};
+
 export async function CheckInbox(page, params) {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
   const imapDate = () => {
@@ -54,7 +40,8 @@ export async function CheckInbox(page, params) {
     ['HEADER', 'SUBJECT', `${params.emailSubject}`],
     ['SINCE', imapDate()]
   ];
-  const fetchOptions = { bodies: ['HEADER', 'TEXT'], markSeen: false };
+
+  const fetchOptions = { bodies: ['HEADER', 'TEXT'], markSeen: true };
 
   try {
     console.log(`Conectando ao servidor IMAP: ${config.imap.host}:${config.imap.port}`);
@@ -114,7 +101,6 @@ export async function CheckInbox(page, params) {
                 console.log("Processamento iniciado");
                 emailCheck = await processFunction(page, parsed, params);
                 console.log("Apos ler email e tentar reset.");
-                console.log(emailCheck)
                 if (emailCheck.status && !emailCheck.keepSearching) {
                   emailFound = true;
                   clearTimeout(timeout);
@@ -166,7 +152,10 @@ export async function CheckInbox(page, params) {
 
     return {
       status: true,
-      data: page,
+      data: {
+        page,
+        ...recoveryLink.data
+      },
       message: recoveryLink.message
     };
   } catch (error) {

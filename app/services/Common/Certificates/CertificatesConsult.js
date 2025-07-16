@@ -1,4 +1,5 @@
 import { checkElement, checkElementAndText, clickElementByXpath, getTableByXpath, sleep } from "../../../../utils.js";
+import { CertificatesError } from "../../../errors/CertificatesError.js";
 import { sanitizeCPF } from "../../../helpers/sanitizeCPF.js";
 import { AnticaptchaExtension } from "../../Anticaptcha/AnticaptchaExtension.js";
 
@@ -81,11 +82,11 @@ export async function CertificatesConsult(page, params) {
       const missingCerts = [];
       if (!validCertificates.Correspondente) missingCerts.push('Correspondente');
       if (!validCertificates.LGPD) missingCerts.push('LGPD');
-      
-      throw new Error(
-          `CPF não possui certificados válidos necessários: ${missingCerts.join(', ')}. ` +
-          `Certificados encontrados: ${JSON.stringify(certificates)}`
-      );
+
+      throw new CertificatesError(`CPF não possui certificados válidos necessários: ${missingCerts.join(', ')}`, {
+        missingCertificates: missingCerts,
+        foundCertificates: [...certificates]
+      });
     }
 
     return {
@@ -97,9 +98,9 @@ export async function CertificatesConsult(page, params) {
     console.error('Error during consult certificates:', error);
     return {
       status: false,
-      data: error,
-      // isPortalError: error instanceof PortalError
+      message: error.message,
+      data: error.data ? error.data : error.message,
+      isCertificateError: error instanceof CertificatesError
     };
   }
-
 }
