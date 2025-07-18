@@ -3,12 +3,12 @@ import { CertificatesError } from "../../../errors/CertificatesError.js";
 import { sanitizeCPF } from "../../../helpers/sanitizeCPF.js";
 import { AnticaptchaExtension } from "../../Anticaptcha/AnticaptchaExtension.js";
 
-const validCertificates = {
-  'LGPD': false,
-  'Correspondente':false
-};
+// const validCertificates = {
+//   'LGPD': false,
+//   'Correspondente':false
+// };
 
-export async function CertificatesConsult(page, params) {
+export async function CertificatesConsult(page, params, validCertificates) {
   try {
     const url = process.env.CERTIFICATES_CONSULT;
     const cpf = await sanitizeCPF(params.cpf);
@@ -65,7 +65,7 @@ export async function CertificatesConsult(page, params) {
         continue;
       }
 
-      if (validDate >= today) {
+      // if (validDate >= today) {
         if (certificate.Certificado.toLowerCase().includes('correspondente')) {
           validCertificates.Correspondente = true;
         }
@@ -75,7 +75,7 @@ export async function CertificatesConsult(page, params) {
         if (validCertificates.LGPD && validCertificates.Correspondente) {
           break;
         }
-      }
+      // }
     }
 
     if (!validCertificates.LGPD || !validCertificates.Correspondente) {

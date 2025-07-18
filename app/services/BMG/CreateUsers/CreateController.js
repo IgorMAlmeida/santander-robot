@@ -18,7 +18,10 @@ const configPath = path.join(__dirname, '../../Anticaptcha/anticaptcha-plugin');
 
 puppeteer.use(StealthPlugin());
 puppeteer.use(AdblockerPlugin({ blockTrackers: true }));
-
+const validCertificates = {
+  'LGPD': false,
+  'Correspondente':false
+};
 export async function CreateController(params) {
 
   console.log(`Desbloqueando usuário para o banco Master com parâmetros:`);
@@ -71,7 +74,7 @@ export async function CreateController(params) {
   try {
     await sleep(1000);
     console.log('Iniciando Verificação de certificados...');
-    const certificates = await CertificatesConsult(page, params);
+    const certificates = await CertificatesConsult(page, params, validCertificates);
     if (!certificates.status) {
       if (certificates.isCertificateError) {
         throw new CertificatesError(certificates.message, certificates.data);

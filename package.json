@@ -9,6 +9,11 @@
     "worker": "node queue/simulationWorker.js",
     "start:debug": "Xvfb :99 -ac -screen 0 1024x768x24 & node app.js"
   },
+  "nodemonConfig": {
+    "ignore": [
+      "./services/Anticaptcha/**"
+    ]
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -40,6 +45,7 @@
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7",
+    "user-agents": "^1.1.604",
     "winston": "^3.17.0",
     "xlsx": "0.18.5",
     "xvfb": "0.4.0",

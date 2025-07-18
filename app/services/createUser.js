@@ -1,9 +1,11 @@
 import { CreateController } from '../services/BMG/CreateUsers/CreateController.js';
 import { CreateUserC6 } from './C6/CreateUsers/index.js';
+import { CreateControllerPan } from './PAN/CreateUsers/CreateControllerPan.js';
 
 const BANKS = {
   BMG: (body) => CreateController(body),
   C6: (body) => CreateUserC6(body),
+  PAN: (body) => CreateControllerPan(body),
 };
 
 export const BANKS_LIST = Object.keys(BANKS);

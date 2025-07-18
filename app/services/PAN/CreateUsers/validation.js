@@ -1,24 +1,26 @@
 import { z } from "zod";
-import { C6_CONFIG } from "./config.js";
+import { PAN_CONFIG } from "./config.js";
 import { CertificatesError } from "../../../errors/CertificatesError.js";
 import { CertificatesConsult } from "../../Common/Certificates/CertificatesConsult.js";
-import { certificatesSchema, createUserC6Schema } from "./schema.js";
+import { certificatesSchema, createUserPANSchema } from "./schema.js";
+
 const validCertificates = {
-  'LGPD': false,
-  'Correspondente':false
+  'LGPD'          : false,
+  'Correspondente':false,
+  'PLDFT'         :false
 };
 
 export function validateBody(body) {
   try {
-    return createUserC6Schema.parse(body);
+    return createUserPANSchema.parse(body);
   } catch (error) {
     if (error instanceof z.ZodError) {
         const firstError = JSON.parse(error)[0];
-        throw new Error(`${C6_CONFIG.ERRORS.INVALID_PARAMS}`, {
+        throw new Error(`${PAN_CONFIG.ERRORS.INVALID_PARAMS}`, {
             cause: firstError.message,
         });
     }
-    throw new Error(`${C6_CONFIG.ERRORS.INVALID_PARAMS}: ${error.message}`);
+    throw new Error(`${PAN_CONFIG.ERRORS.INVALID_PARAMS}: ${error.message}`);
   }
 }
 
@@ -35,7 +37,7 @@ export async function validateCertificates(page, body) {
         );
       }
       throw new Error(
-        validatedCertificates.data || C6_CONFIG.ERRORS.CERTIFICATES_FAILED
+        validatedCertificates.data || PAN_CONFIG.ERRORS.CERTIFICATES_FAILED
       );
     }
     
@@ -46,8 +48,8 @@ export async function validateCertificates(page, body) {
       throw error;
     }
     if (error instanceof z.ZodError) {
-      throw new Error(`${C6_CONFIG.ERRORS.CERTIFICATES_FAILED}: Resposta inválida do serviço de certificados`);
+      throw new Error(`${PAN_CONFIG.ERRORS.CERTIFICATES_FAILED}: Resposta inválida do serviço de certificados`);
     }
-    throw new Error(`${C6_CONFIG.ERRORS.CERTIFICATES_FAILED}: ${error.message}`);
+    throw new Error(`${PAN_CONFIG.ERRORS.CERTIFICATES_FAILED}: ${error.message}`);
   }
 }

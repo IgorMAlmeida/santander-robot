@@ -46,7 +46,7 @@ export async function CreateUserService(page, param) {
     console.log("Buscando usuario...");
     await sleep(1000);
     const firstName = param.name.split(' ')[0];
-    const bankUser = `${firstName.toUpperCase()}${param.broker_code}${param.state_acronym}6`;
+    const bankUser = `${firstName.toUpperCase()}${param.broker_code}${param.state_acronym}`;
     let user = await searchUser(page, [sanitizedCPF, bankUser]);
     console.log("Verificação de usuario", user);
 
