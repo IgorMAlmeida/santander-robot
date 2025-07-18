@@ -1,17 +1,25 @@
 class ControllerResponse {
-  success(response, data) {
-    return response.status(200).json({
-        status: true,
-        response: 'Data successfully processed',
-        data: data
+  success(res, data) {
+    return res.status(200).json({
+      status: true,
+      response: "Data successfully processed",
+      data: data,
     });
   }
 
-  error(response, error) {
-    return response.status(400).json({
-        status: false,
-        error: error?.message,
-        details: error?.details || undefined
+  error(res, error) {
+    return res.status(400).json({
+      status: false,
+      error: error?.message,
+      details: error?.cause || undefined,
+    });
+  }
+
+  certificateError(res, response, data = null) {
+    return res.status(400).json({
+      status: false,
+      error: response,
+      data,
     });
   }
 }

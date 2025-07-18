@@ -1,7 +1,6 @@
 export async function sanitizeCPF(cpf) {
     if (!cpf || typeof cpf !== 'string') return '';
   
-    console.log({cpf})
   const sanitized = cpf.replace(/[^\d]/g, '');
   
   if (sanitized.length !== 11 || /^(\d)\1{10}$/.test(sanitized)) {

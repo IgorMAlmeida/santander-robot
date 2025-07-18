@@ -21,7 +21,7 @@ import { JobGetList, JobGetId } from './controllers/Financial/JobGetController.j
 import { DaycovalImovelStatus } from './controllers/Financial/DaycovalImovelStatusController.js';
 import { DaycovalImovelFinancial } from './controllers/Financial/DaycovalImovelController.js';
 import { consultOleUserBank } from './jobs/consultOleUserBank.js';
-import { CreateBankUser } from './controllers/CreateBankUser.js';
+import { CreateBankUserController } from './controllers/CreateBankUserController.js';
 
 const upload = multer({ dest: 'uploads/' });
 const router = express.Router();
@@ -149,32 +149,6 @@ router.post('/api/unlock_user_bank', upload.none(), async (req, res) => {
     }
 });
 
-router.post('/api/create_user_bank', upload.none(), async (req, res) => {
-    try {
-        const response = await CreateBankUser(req?.body);
-
-        if (!response.status) {
-            if(response.isCertificateError){
-                return res.status(400).json({
-                    status: false,
-                    response: response.response || null,
-                    data: response.data || null
-                });
-            }
-            throw new Error(response.response);
-        }
-
-        res.status(200).json(response);
-    } catch (err) {
-        console.error('Erro ao processar a solicitação:', err);
-        res.status(400).json({
-            status: false,
-            response: err.message,
-            data: null
-        });
-    }
-});
-
 router.post('/santander_proposals', async (req, res) => {
     try {
 
@@ -187,6 +161,8 @@ router.post('/santander_proposals', async (req, res) => {
         res.status(500).json({ status: false, error: err });
     }
 });
+
+router.post("/api/create_user_bank/:bank", CreateBankUserController);
 
 router.post("/api/consult/aprovacao/c6/proposal", C6Approval);
 router.post("/api/consult/aprovacao/daycoval/proposal", DaycovalApproval);
