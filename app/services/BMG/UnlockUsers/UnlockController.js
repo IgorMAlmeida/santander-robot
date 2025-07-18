@@ -13,7 +13,7 @@ dotenv.config();
 puppeteer.use(StealthPlugin());
 puppeteer.use(AdblockerPlugin({ blockTrackers: true }));
 
-export async function UnlockController(params) {
+export async function UnlockControllerBmg(params) {
   console.log(`Desbloqueando usuário para o banco Master com parâmetros:`, params);
   const browser = await puppeteer.launch({
     ignoreDefaultArgs: true,

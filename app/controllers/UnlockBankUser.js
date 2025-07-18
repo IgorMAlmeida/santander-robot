@@ -1,14 +1,12 @@
 import dotenv from 'dotenv';
-import { 
-  UnlockController,
-  // UnlockMaster
-} from '../services/BMG/UnlockUsers/UnlockController.js';
+import { UnlockControllerBmg} from '../services/BMG/UnlockUsers/UnlockController.js';
+import { UnlockControllerFacta} from '../services/FACTA/UnlockUsers/UnlockController.js';
 dotenv.config();
 
 const bankUnlock = {
   // MASTER:() => UnlockMaster(),
-  // BMG:() => UnlockController(),
-  BMG: (params) => UnlockController(params),
+  FACTA:(params) => UnlockController(params),
+  BMG: (params) => UnlockControllerBmg(params),
 };
 
 export async function UnlockBankUser(consultParams) {
