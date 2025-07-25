@@ -16,6 +16,10 @@ export async function CreateBankUserController(request, response) {
       return ControllerResponse.certificateError(response, result.response, result.data);
     }
 
+    if (result?.isUserAlreadyExists) {
+      return ControllerResponse.UserExistError(response, result.response, result.data);
+    }
+
     if (!result?.status) {
       throw new Error(result.response);
     }

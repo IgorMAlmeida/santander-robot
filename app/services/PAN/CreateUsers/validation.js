@@ -5,9 +5,9 @@ import { CertificatesConsult } from "../../Common/Certificates/CertificatesConsu
 import { certificatesSchema, createUserPANSchema } from "./schema.js";
 
 const validCertificates = {
-  'LGPD'          : false,
+  'LGPD'          :false,
   'Correspondente':false,
-  'PLDFT'         :false
+  // 'PLDFT'         :false   
 };
 
 export function validateBody(body) {

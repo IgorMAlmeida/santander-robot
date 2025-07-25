@@ -22,6 +22,14 @@ class ControllerResponse {
       data,
     });
   }
+
+  UserExistError(res, response, data = null) {
+    return res.status(400).json({
+      status: false,
+      error: response,
+      data,
+    });
+  }
 }
 
 export default new ControllerResponse();
