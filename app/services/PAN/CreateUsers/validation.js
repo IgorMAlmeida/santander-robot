@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { PAN_CONFIG } from "./config.js";
+import { PAN_CONFIG } from "../config.js";
 import { CertificatesError } from "../../../errors/CertificatesError.js";
 import { CertificatesConsult } from "../../Common/Certificates/CertificatesConsult.js";
 import { certificatesSchema, createUserPANSchema } from "./schema.js";
@@ -7,7 +7,7 @@ import { certificatesSchema, createUserPANSchema } from "./schema.js";
 const validCertificates = {
   'LGPD'          :false,
   'Correspondente':false,
-  // 'PLDFT'         :false   
+  'PLDFT'         :false   
 };
 
 export function validateBody(body) {

@@ -1,14 +1,17 @@
 import dotenv from 'dotenv';
 import { 
   UnlockController,
-  // UnlockMaster
 } from '../services/BMG/UnlockUsers/UnlockController.js';
+import { UnlockControllerPan } from '../services/PAN/UnlockUsers/UnlockControllerPan.js';
+import logger from '../utils/logger.js';
+
 dotenv.config();
 
 const bankUnlock = {
   // MASTER:() => UnlockMaster(),
   // BMG:() => UnlockController(),
   BMG: (params) => UnlockController(params),
+  PAN: (params) => UnlockControllerPan(params),
 };
 
 export async function UnlockBankUser(consultParams) {
@@ -21,7 +24,6 @@ export async function UnlockBankUser(consultParams) {
 
   const bankName = String(consultParams.bank).toUpperCase();
   const unlockFunction = bankUnlock[bankName];
-  console.log(`Função de desbloqueio encontrada para o banco: ${bankName}`, unlockFunction);
 
   if (typeof unlockFunction === 'function') {
     try {

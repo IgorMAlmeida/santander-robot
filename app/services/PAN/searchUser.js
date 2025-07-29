@@ -3,6 +3,7 @@ import logger from "../../utils/logger.js";
 
 export default async function searchUser(page, cpf) {
   try {
+    await sleep(1000);
     await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
     await clickElementByXpath(page, '//*[@id="block"]/a');
     await page.waitForNavigation({ waitUntil: 'domcontentloaded' });

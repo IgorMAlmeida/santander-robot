@@ -113,75 +113,66 @@ export const bankSchema = z
     message: "Banco deve ser: pan, bmg ou c6",
   });
 
-export const createUserPANSchema = z.object({
+export const unlockUserPANSchema = z.object({
   cpf: cpfSchema,
   name: nameSchema,
-  document_type: z
-    .string({
-      error: errorMessage,
-    })
-    .min(1, {
-      message: "Tipo de documento deve ter pelo menos 2 caracteres",  
-    })
-    .max(20, {
-      message: "Endereço deve ter no máximo 200 caracteres",
-    }),
-  address: z
-    .string({
-      error: errorMessage,
-    })
-    .min(5, {
-      message: "Endereço deve ter pelo menos 5 caracteres",
-    })
-    .max(200, {
-      message: "Endereço deve ter no máximo 200 caracteres",
-    }),
-  rg_cnh: rgCnhSchema,
-  birth_date: birthDateSchema,
-  phone: phoneSchema,
-  mothers_name: nameSchema,
-  email: emailSchema,
-  landline: phoneSchema,
-  cep: cepSchema,
-  neighborhood: z
-    .string({
-      error: errorMessage,
-    })
-    .min(2, {
-      message: "Bairro deve ter pelo menos 2 caracteres",
-    })
-    .max(100, {
-      message: "Bairro deve ter no máximo 100 caracteres",
-    }),
-  city: z
-    .string({
-      error: errorMessage,
-    })
-    .min(2, {
-      message: "Cidade deve ter pelo menos 2 caracteres",
-    })
-    .max(100, {
-      message: "Cidade deve ter no máximo 100 caracteres",
-    }),
-  state_acronym: stateAcronymSchema,
-  bank: bankSchema,
-  broker_code: z
-    .number({
-      error: errorMessage,
-    })
-    .int({
-      message: "Código do corretor deve ser um número inteiro",
-    })
-    .positive({
-      message: "Código do corretor deve ser um número positivo",
-    }),
+//   document_type: z
+//     .string({
+//       error: errorMessage,
+//     })
+//     .min(1, {
+//       message: "Tipo de documento deve ter pelo menos 2 caracteres",  
+//     })
+//     .max(20, {
+//       message: "Endereço deve ter no máximo 200 caracteres",
+//     }),
+//   address: z
+//     .string({
+//       error: errorMessage,
+//     })
+//     .min(5, {
+//       message: "Endereço deve ter pelo menos 5 caracteres",
+//     })
+//     .max(200, {
+//       message: "Endereço deve ter no máximo 200 caracteres",
+//     }),
+//   rg_cnh: rgCnhSchema,
+//   birth_date: birthDateSchema,
+//   phone: phoneSchema,
+//   mothers_name: nameSchema,
+//   email: emailSchema,
+//   landline: phoneSchema,
+//   cep: cepSchema,
+//   neighborhood: z
+//     .string({
+//       error: errorMessage,
+//     })
+//     .min(2, {
+//       message: "Bairro deve ter pelo menos 2 caracteres",
+//     })
+//     .max(100, {
+//       message: "Bairro deve ter no máximo 100 caracteres",
+//     }),
+//   city: z
+//     .string({
+//       error: errorMessage,
+//     })
+//     .min(2, {
+//       message: "Cidade deve ter pelo menos 2 caracteres",
+//     })
+//     .max(100, {
+//       message: "Cidade deve ter no máximo 100 caracteres",
+//     }),
+//   state_acronym: stateAcronymSchema,
+//   bank: bankSchema,
+//   broker_code: z
+//     .number({
+//       error: errorMessage,
+//     })
+//     .int({
+//       message: "Código do corretor deve ser um número inteiro",
+//     })
+//     .positive({
+//       message: "Código do corretor deve ser um número positivo",
+//     }),
 });
-
-export const certificatesSchema = z.object({
-  status: z.boolean(),
-  message: z.string().optional(),
-  data: z.any().optional(),
-  isCertificateError: z.boolean().optional(),
-});
-
-

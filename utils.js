@@ -14,6 +14,66 @@ export async function clickCheckboxByValue(page, value, timeout = 5000, waitUnti
   await checkbox.click();
 }
 
+export async function clickElementByXpathInFrame(page, xpath, timeout = 50000, frameUrlFilter = '') {
+  try {
+    const button = await page.waitForSelector(`::-p-xpath(${xpath})`, { timeout: timeout });
+    await button.click();
+    console.log('Elemento encontrado na página principal');
+    return;
+  } catch (e) {
+    console.log('Elemento não encontrado na página principal, procurando nos frames...');
+  }
+
+  const frames = await page.frames();
+  console.log(`Total de frames encontrados: ${frames.length}`);
+
+  for (let i = 0; i < frames.length; i++) {
+    const frame = frames[i];
+    try {
+      console.log(`Procurando no frame ${i}: ${frame.url()}`);
+      if (frameUrlFilter && !frame.url().includes(frameUrlFilter)) {
+        console.log(`Pulando frame: ${frame.url()} (não contém '${frameUrlFilter}')`);
+        continue;
+      }
+
+      const button = await frame.waitForSelector(`::-p-xpath(${xpath})`, { timeout: timeout });
+      await button.click();
+      console.log(`Elemento encontrado e clicado no frame ${i}`);
+      return;
+
+    } catch (e) {
+      console.log(`Elemento não encontrado no frame ${i}`);
+      continue;
+    }
+  }
+
+  throw new Error(`Elemento não encontrado nem na página principal nem em nenhum frame: ${xpath}`);
+
+}
+
+export async function waitForElementHiddenInFrames(page, xpath, timeout = 500000) {
+  const frames = [page, ...await page.frames()];
+
+  for (const frame of frames) {
+    try {
+      await frame.waitForFunction(
+        (xpath) => {
+          const element = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+          return element && window.getComputedStyle(element).display === 'none';
+        },
+        { timeout: timeout },
+        xpath
+      );
+      console.log('Elemento encontrado e está invisível');
+      return;
+    } catch (e) {
+      continue;
+    }
+  }
+
+  throw new Error(`Timeout: Elemento não ficou invisível em ${timeout}ms`);
+}
+
 export async function selectOptionByXpath(page, xpath, value) {
   await page.evaluate(() => {
     const select = document.querySelector(
@@ -68,6 +128,7 @@ export async function getElementClass(page, selector) {
 }
 
 export async function blockUnnecessaryRequests(page) {
+  page.removeAllListeners('request');
   await page.setRequestInterception(true);
   page.on('request', req => {
     const resourceType = req.resourceType();
@@ -77,6 +138,11 @@ export async function blockUnnecessaryRequests(page) {
       req.continue();
     }
   });
+}
+
+export async function unblockUnnecessaryRequests(page) {
+  page.removeAllListeners('request');
+  await page.setRequestInterception(false);
 }
 
 export async function awaitElement(page, selector) {
@@ -114,6 +180,48 @@ export async function checkElementAndText(page, selector) {
     return { status: false, text: error };
   }
 }
+
+export async function checkElementAndTextInFrames(page, selector, timeout = 50000, frameUrlFilter = '') {
+  try {
+    try {
+      console.log(`Procurando na tela`);
+      const element = await page.waitForSelector(`::-p-xpath(${selector})`, { timeout: timeout / 2 });
+      let textoElemento = await element.evaluate(el => el.textContent);
+      if(textoElemento == ''){
+        textoElemento = await element.evaluate(el => el.value);
+      }
+
+      return { status: true, text: textoElemento };
+    } catch (e) {
+
+    }
+
+    const frames = await page.frames();
+    for (const frame of frames) {
+      try {
+        console.log(`Procurando no frame ${frame.url()}`);
+        if (frameUrlFilter && !frame.url().includes(frameUrlFilter)) {
+          console.log(`Pulando frame: ${frame.url()} (não contém '${frameUrlFilter}')`);
+          continue;
+        }
+        const element = await frame.waitForSelector(`::-p-xpath(${selector})`, { timeout: 1000 });
+        let textoElemento = await element.evaluate(el => el.textContent);
+        if(textoElemento == ''){
+          textoElemento = await element.evaluate(el => el.value);
+        }
+        return { status: true, text: textoElemento };
+      } catch (e) {
+        continue;
+      }
+    }
+
+    throw new Error('Element not found for selector: ' + selector);
+
+  } catch (error) {
+    return { status: false, text: error.message || error };
+  }
+}
+
 
 export async function checkElementAndValue(page, selector) {
   try {
