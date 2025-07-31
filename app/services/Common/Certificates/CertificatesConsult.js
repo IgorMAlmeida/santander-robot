@@ -87,6 +87,7 @@ async function validateCertificates(validCertificates, certificates, today = new
 
   for (const certificate of certificates) {
     const validDate = new Date(certificate.DataValidade);
+    ///////// DESCOMENTAR ESSE TRCHO EM PRODUCAO
     // if (validDate >= today) {
       const certStr = certificate.Certificado.toLowerCase();
       for (const certKey of Object.keys(validFlags)) {

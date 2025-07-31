@@ -4,6 +4,7 @@ import {
 } from '../services/BMG/UnlockUsers/UnlockController.js';
 import { UnlockControllerPan } from '../services/PAN/UnlockUsers/UnlockControllerPan.js';
 import logger from '../utils/logger.js';
+import { UnlockControllerQueroMais } from '../services/QueroMais/UnlockUsers/UnlockControllerQueroMais.js';
 
 dotenv.config();
 
@@ -12,6 +13,7 @@ const bankUnlock = {
   // BMG:() => UnlockController(),
   BMG: (params) => UnlockController(params),
   PAN: (params) => UnlockControllerPan(params),
+  QUEROMAIS: (params) => UnlockControllerQueroMais(params),
 };
 
 export async function UnlockBankUser(consultParams) {

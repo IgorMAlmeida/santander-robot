@@ -63,16 +63,3 @@ export default async function UnlockUserPan(page, data, userData) {
     };
   }
 }
-
-async function higienizeCPF(cpf){
-  const apenasNumeros = cpf.replace(/\D/g, '');
-
-  if (apenasNumeros.length < 11) {
-    throw new Error('CPF incompleto. Deve conter 11 dígitos.');
-  }
-
-  const primeirosNove = apenasNumeros.slice(0, 9);
-  const doisUltimos = apenasNumeros.slice(-2);
-
-  return `${primeirosNove}-${doisUltimos}`;
-}
