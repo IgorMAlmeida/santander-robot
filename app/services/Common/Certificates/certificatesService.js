@@ -1,7 +1,7 @@
 import { toISODate } from '../../../../utils.js';
 import { Certificate, User } from '../../../database/models/index.js';
 import { updateOrCreate } from '../../userService.js';
-import { Op } from 'sequelize';
+import { Op, fn, col, where } from 'sequelize';
 import logger from '../../../utils/logger.js';
 
 export async function searchCertificatesByCPF(cpf) {
@@ -59,15 +59,24 @@ export async function checkCertificateExists(cpf, numeroCertificado) {
 }
 
 export async function checkCertificatesByName(cpf, certificates, consultaDate = new Date()) {
+  console.log(`Verificando certificados para o CPF: ${cpf} com data de consulta: ${consultaDate}`);
+  console.log(certificates);
   const certificateNameFilters = Object.keys(certificates).map(name =>
-    ({ certificate: { [Op.like]: `%${name}%` } })
-  );
+  where(
+    fn('LOWER', col('certificate')),
+    {
+      [Op.like]: `%${name.toLowerCase()}%`
+    }
+  )
+);
+  console.log(certificateNameFilters);
 
   const queryResult = await Certificate.findAll({
     include: [{
       model: User,
       as: 'user',
-      where: { cpf }
+      where: { cpf },
+      logging: console.log,
     }],
     where: {
       [Op.and]: [

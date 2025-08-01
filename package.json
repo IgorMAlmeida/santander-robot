@@ -7,7 +7,8 @@
   "scripts": {
     "start": "Xvfb :99 -ac -screen 0 1024x768x24 & nodemon app.js & nodemon queue/simulationWorker.js",
     "worker": "node queue/simulationWorker.js",
-    "start:debug": "Xvfb :99 -ac -screen 0 1024x768x24 & node app.js"
+    "start:debug": "Xvfb :99 -ac -screen 0 1024x768x24 & node app.js",
+    "start:windows": "node app.js"
   },
   "nodemonConfig": {
     "ignore": [

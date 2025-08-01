@@ -130,50 +130,6 @@ export const createUserQueroMaisSchema = z.object({
   .positive({
     message: "Código do corretor deve ser um número positivo",
   }),
-// landline: phoneSchema,
-//   document_type: z
-//     .string({
-//       error: errorMessage,
-//     })
-//     .min(1, {
-//       message: "Tipo de documento deve ter pelo menos 2 caracteres",  
-//     })
-//     .max(20, {
-//       message: "Endereço deve ter no máximo 200 caracteres",
-//     }),
-//   address: z
-//     .string({
-//       error: errorMessage,
-//     })
-//     .min(5, {
-//       message: "Endereço deve ter pelo menos 5 caracteres",
-//     })
-//     .max(200, {
-//       message: "Endereço deve ter no máximo 200 caracteres",
-//     }),
-//   rg_cnh: rgCnhSchema,
-//   cep: cepSchema,
-//   neighborhood: z
-//     .string({
-//       error: errorMessage,
-//     })
-//     .min(2, {
-//       message: "Bairro deve ter pelo menos 2 caracteres",
-//     })
-//     .max(100, {
-//       message: "Bairro deve ter no máximo 100 caracteres",
-//     }),
-//   city: z
-//     .string({
-//       error: errorMessage,
-//     })
-//     .min(2, {
-//       message: "Cidade deve ter pelo menos 2 caracteres",
-//     })
-//     .max(100, {
-//       message: "Cidade deve ter no máximo 100 caracteres",
-//     }),
-//   state_acronym: stateAcronymSchema,
 });
 
 export const certificatesSchema = z.object({

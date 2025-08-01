@@ -65,9 +65,6 @@ export default async function createUserPan(page, data) {
 
     await clickElementByXpath(page, QUERO_MAIS_CREATE_CONFIG.SELECTORS.CONFIRM_BUTTON_FIELD);
     await sleep(2000);
-    page.waitForNavigation({ waitUntil: 'networkidle0' });
-    
-    await sleep(2000);
     await waitForElementHiddenInFrames(page, '//*[@id="ctl00_UpdPrs"]');
     await sleep(2000);
     
@@ -77,7 +74,7 @@ export default async function createUserPan(page, data) {
       throw new Error(newPass.text);
     }
 
-    const newUser = await checkElementAndTextInFrames(page, QUERO_MAIS_CREATE_CONFIG.SELECTORS.NEW_PASS_YES_FIELD, 50000);
+    const newUser = await checkElementAndTextInFrames(page, QUERO_MAIS_CREATE_CONFIG.SELECTORS.NEW_USER_FIELD_FIELD, 50000);
     console.log('newUser', newUser);
     if (!newUser.status) {
       throw new Error(newUser.text);
@@ -88,12 +85,10 @@ export default async function createUserPan(page, data) {
     await sleep(2000);
     await clickElementByXpathInFrame(page, QUERO_MAIS_CREATE_CONFIG.SELECTORS.GOBACK_LOGIN_DATA_BUTTON_FIELD, 5000, '/Cadastros/Usuarios/UI.ConfirmacaoCadastroUsuarioPopUp.aspx');
     
-    await sleep(9000000);
-    
-
     const userdata = {
-      login: higienizeCPF(data.cpf),
-      password: pass.text,
+      user: newUser.text,
+      login: await higienizeCPF(data.cpf),
+      password: newPass.text,
     }
 
     return {

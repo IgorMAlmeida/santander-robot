@@ -37,10 +37,14 @@ async function fetchExternalCertificates(page, params, validCertificates) {
     buttonCloseFound
       ? await clickElementByXpath(page, '//*[@id="mat-mdc-dialog-2"]/div/div/app-popup-termos/div/div/form/div[2]/app-button/button')
       : await clickElementByXpath(page, '//*[@id="mat-mdc-dialog-0"]/div/div/app-popup-termos/div/div/form/div[2]/app-button/button');
-    await sleep(1000);
+    await sleep(2000);
 
     console.log('PopUp fechado. Clicando no botao de pesquisa.');
-    await clickElementByXpath(page, '//*[@id="consulta"]/div[3]/div[2]/form/div[3]/app-button/button');
+    try{
+      await clickElementByXpath(page, '//*[@id="consulta"]/div[3]/div[2]/form/div[3]/app-button/button');
+    }catch (error) {
+      await clickElementByXpath(page, ' //*[@id="consulta"]/div[3]/div[2]/dspe-card/div/div/form/div[3]/app-button/button');
+    }
     await sleep(1000);
     console.log('Verificando se há certificados para o CPF');
     await page.waitForSelector('.mat-mdc-table.mdc-data-table__table.cdk-table', { timeout: 150000 })
@@ -63,7 +67,7 @@ async function fetchExternalCertificates(page, params, validCertificates) {
     }
     const today = new Date().setHours(0, 0, 0, 0);
     const certificates = await validateCertificates(validCertificates, table, today);
-
+    await sleep(2000);
     return {
       status: true,
       data: certificates
@@ -87,8 +91,7 @@ async function validateCertificates(validCertificates, certificates, today = new
 
   for (const certificate of certificates) {
     const validDate = new Date(certificate.DataValidade);
-    ///////// DESCOMENTAR ESSE TRCHO EM PRODUCAO
-    // if (validDate >= today) {
+    if (validDate >= today) {
       const certStr = certificate.Certificado.toLowerCase();
       for (const certKey of Object.keys(validFlags)) {
         if (certStr.includes(certKey.toLowerCase())) {
@@ -98,7 +101,7 @@ async function validateCertificates(validCertificates, certificates, today = new
       if (Object.values(validFlags).every(flag => flag)) {
         break;
       }
-    // }
+    }
   }
 
   const missingCerts = Object.keys(validFlags).filter(key => !validFlags[key]);
@@ -126,6 +129,7 @@ export async function CertificatesConsult(page, params, validCertificates) {
   try {
     const checkCertificates = await checkCachedCertificates(params.cpf, validCertificates, );
     let externalCertificate;
+    console.log('checkCertificates', checkCertificates);
     if(!checkCertificates.status){
       externalCertificate = await fetchExternalCertificates(page, params, validCertificates);
   

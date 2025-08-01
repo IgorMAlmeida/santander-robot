@@ -24,7 +24,8 @@ puppeteer.use(pluginStealth);
 export async function CreateControllerQueroMais(body) {
 
   const validatedBody = validateBody(body);
-  const cacheDir = path.resolve(__dirname, '../PAN_CACHE');
+  validatedBody.cpf = validatedBody.cpf.replace(/\D/g, '');
+  const cacheDir = path.resolve(__dirname, '../QUERO_MAIS_CACHE');
 
   try {
     const browser = await puppeteer.launch({
@@ -40,15 +41,18 @@ export async function CreateControllerQueroMais(body) {
     });
 
     const page = await browser.newPage();
-    // const certificates = await validateCertificates(page, validatedBody);
-    // console.log("certificates", certificates);
+    const certificates = await validateCertificates(page, validatedBody);
+
     await blockUnnecessaryRequests(page);
     await authenticateUser(page);
     await checkUserExists(page, validatedBody.cpf);
     const userData = await createUser(page, validatedBody);
+    console.log("User data criado: ", userData);
 
-
-    // return { user_data: userData, certificates: certificates.data };
+    return {
+      user_data: userData.data,
+      certificates: certificates.data
+    };
 
   } catch (error) {
     logger.logError("Erro ao criar usuário", {
@@ -68,7 +72,7 @@ export async function CreateControllerQueroMais(body) {
     };
 
   } finally {
-    // await browser.close();
+    await browser.close();
   }
 }
 

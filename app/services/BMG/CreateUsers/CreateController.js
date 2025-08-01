@@ -67,7 +67,7 @@ export async function CreateController(params) {
   });
 
   const page = await browser.newPage();
-  // await blockUnnecessaryRequests(page);
+  await blockUnnecessaryRequests(page);
   let logoutData = {status:false, data:""};
   let loginControl = false;
 

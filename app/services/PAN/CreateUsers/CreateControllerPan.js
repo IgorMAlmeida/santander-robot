@@ -24,6 +24,7 @@ puppeteer.use(pluginStealth);
 export async function CreateControllerPan(body) {
 
   const validatedBody = validateBody(body);
+  validatedBody.cpf = validatedBody.cpf.replace(/\D/g, '');
   const cacheDir = path.resolve(__dirname, '../PAN_CACHE');
 
   const browser = await puppeteer.launch({
@@ -48,7 +49,7 @@ export async function CreateControllerPan(body) {
     await checkUserExists(page, validatedBody.cpf);
     const userData = await createUser(page, validatedBody);
 
-    return  { user_data: userData, certificates: certificates.data };
+    return  { user_data: userData.data, certificates: certificates.data };
 
   } catch (error) {
     logger.logError("Erro ao criar usuário", {
@@ -68,7 +69,7 @@ export async function CreateControllerPan(body) {
     };
 
   } finally {
-    // await browser.close();
+    await browser.close();
   }
 }
 

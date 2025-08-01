@@ -28,9 +28,9 @@ export async function UnlockControllerQueroMais(body) {
       status: true,
       response: "Usuário desbloqueado com sucesso",
       data: {
-        CPFuser: userData.data.userData[0].CPFUsuario,
-        UserName: userData.data.userData[0].NomeUsuario,
-        newPass
+        cpf: userData.data.userData[0].CPFUsuario,
+        user: userData.data.userData[0].NomeUsuario,
+        pass: newPass
       }
     };
 
